@@ -27,6 +27,16 @@ Usage:
 ```
 
 
+# USB Dongle with TROPIC01 chip
+
+One-liner for compiling lt-utils:
+
+```
+mkdir build &&  cd build && cmake -DUSB_DONGLE=1 .. && make && cd ../
+```
+
+Binary will be produced in `build/` folder.
+
 # HW SPI - raspberrypi shield
 
 If our rpi shield is used, put jumper on a CS2 position. Example is tested on rpi3 and rpi4.
@@ -104,16 +114,3 @@ mkdir build &&  cd build && cmake -DHW_SPI=1 .. && make && cd ../
 ```
 Binary will be produced in `build/` folder.
 
-
-
-
-
-# USB Dongle with TROPIC01 chip
-
-Plug in the dongle, uncomment port file in `CMakeLists.txt:34` and compile:
-
-```
-mkdir build &&  cd build && cmake -DUSB_DONGLE=1 .. && make && cd ../
-```
-
-Binary will be produced in `build/` folder.
