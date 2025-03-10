@@ -12,7 +12,7 @@ cmake_minimum_required(VERSION 3.21.0)
 set(PATH_LIBTROPIC "libtropic/")
 
 option(HW_SPI      "Compile for hw spi on rpi" OFF)
-option(USB_DONGLE  "Compile for usb dongle" ON)
+option(USB_DONGLE  "Compile for usb dongle" OFF)
 
 
 ###########################################################################
@@ -35,7 +35,7 @@ project(libtropic_unix_spi_example
 
 if(HW_SPI)
     add_executable(lt-util src/main.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_unix_raspberrypi.c)
+    ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_raspberrypi_wiringpi.c) 
 endif()
 
 if(USB_DONGLE)
@@ -78,5 +78,5 @@ endif()
 
 
 if(HW_SPI)
-    target_link_libraries(lt-util PRIVATE tropic, wiringpi)
+    target_link_libraries(lt-util PRIVATE tropic wiringPi)
 endif()

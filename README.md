@@ -4,7 +4,13 @@ This utility is a C wrapper for libtropic library. Once compiled, binary can be 
 
 Two hardware options are supported, HW SPI or USB dongle.
 
-They are switched by uncommenting expected port layer file in `CMakeLists.txt:34`.
+After cloning, update just libtropic submodule:
+
+```
+git submodule update --init libtropic
+```
+
+to avoid recursively downloading more data than necessary.
 
 
 ```
