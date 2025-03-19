@@ -1,21 +1,13 @@
 # lt-util
 
-This utility is a C wrapper for libtropic library. Once compiled, binary can be executed from bash.
+[!WARNING]
+This software shall not be used in production. Use with care.
 
-Two hardware options are supported, HW SPI or USB dongle.
-
-After cloning, update just libtropic submodule:
-
-```
-git submodule update --init libtropic
-```
-
-to avoid recursively downloading more data than necessary.
-
-
-```
 # Example usage:
 
+Basically this is a C wrapper for libtropic library. Once compiled, it can be executed from bash and used for direct access to TROPIC01 features.
+
+```
 $ ./lt-util
 
 Usage:
@@ -33,9 +25,23 @@ Usage:
 ```
 
 
-# USB Dongle with TROPIC01 chip
+# Clone
 
-One-liner for compiling lt-utils:
+Use following command to clone repository:
+```
+$ git clone --recurse-submodules https://github.com/tropicsquare/libtropic-util
+```
+
+and follow building instruction based on what hardware you have.
+
+
+# Compile
+
+Compilation differs based on what hardware are you compiling for. At the moment we support two hardware devkits - `raspberrypi shield` or `USB dongle`.
+
+## USB Dongle with TROPIC01 chip
+
+One-liner for compiling:
 
 ```
 mkdir build &&  cd build && cmake -DUSB_DONGLE=1 .. && make && cd ../
@@ -43,11 +49,13 @@ mkdir build &&  cd build && cmake -DUSB_DONGLE=1 .. && make && cd ../
 
 Binary will be produced in `build/` folder.
 
-# HW SPI - raspberrypi shield
+## Raspberry Pi shield (uses hw SPI)
 
-If our rpi shield is used, put jumper on a CS2 position. Example is tested on rpi3 and rpi4.
+There is more instructions when compiling for our raspberrypi shield.
 
 ### Wiring
+
+If you have our official shield, put jumper on CS2 position, otherwise wire TROPIC01 according to following scheme:
 
 ```
                     Connector J8 on Raspberry Pi:
@@ -76,13 +84,13 @@ If our rpi shield is used, put jumper on a CS2 position. Example is tested on rp
 
 ### Dependencies
 
-Enable spi:
+Enable hardware spi:
 
 ```
 sudo raspi-config  # then go into Interfaces and enable SPI
 ```
 
-On raspberry pi install wiringPi from released package
+Install wiringPi from released package
 
 ```bash
 $ wget https://github.com/WiringPi/WiringPi/releases/download/3.14/wiringpi_3.14_arm64.deb
@@ -113,7 +121,7 @@ System details:
 
 ### Compiling
 
-Use following one-liner to produce binary (tested on rpi3 and rpi4):
+One-liner for compiling (tested on rpi3 and rpi4):
 
 ```
 mkdir build &&  cd build && cmake -DHW_SPI=1 .. && make && cd ../
