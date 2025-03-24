@@ -54,7 +54,7 @@ void print_usage(void) {
 "\t./lt-util "MEM" " MEM_STORE" [slot]  [file]            # Memory  - Store content of filename (max size is 444B)  into memory slot\r\n"
 "\t./lt-util "MEM" " MEM_READ" [slot]  [file]            # Memory  - Read content of memory slot (max size is 444B) into filename\r\n"
 "\t./lt-util "MEM" " MEM_ERASE" [slot]                    # Memory  - Erase content of memory slot\r\n\n"
-"\t All commands return 0 if success, otherwise -1\r\n\n");
+"\t All commands return 0 if success, otherwise 1\r\n\n");
 }
 
 
