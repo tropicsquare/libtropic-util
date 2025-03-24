@@ -61,6 +61,7 @@ void print_usage(void) {
 int process_rng_get(char *count_in, char *file) {
     if(!count_in || !file) {
         //printf("Error, NULL parameters process_rng_get()\r\n");
+        return 1;
     } else {
         //printf("Processing lt-util "RNG" %s %s\r\n", count_in, file);
     }
@@ -70,7 +71,7 @@ int process_rng_get(char *count_in, char *file) {
     long int count = strtol(count_in, &endptr, 10);
     if((count > RANDOM_VALUE_GET_LEN_MAX) | (count < 0)) {
         //printf("Invalid length passed, use number between 0-255");
-        return -1;
+        return 1;
     }
     // TODO check endptr
 
@@ -78,7 +79,7 @@ int process_rng_get(char *count_in, char *file) {
     FILE *fp = fopen(file, "wb");
     if (fp == NULL) {
         //perror("Error opening file");
-        return -1;
+        return 1;
     }
 
     // Get random bytes from TROPIC01 into bytes[] buffer
@@ -109,7 +110,7 @@ int process_rng_get(char *count_in, char *file) {
         //printf("Error writing into file, %zu written\n", written);
         fclose(fp);
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
 
     //printf("OK\r\n");
@@ -124,7 +125,7 @@ int process_rng_get(char *count_in, char *file) {
 int process_ecc_install(char *slot_in, char *file) {
     if(!slot_in || !file) {
         //printf("Error, NULL parameters process_rng_get()\r\n");
-        return -1;
+        return 1;
     } else {
         //printf("Processing lt-util "ECC" "ECC_INSTALL" %s %s\r\n", slot_in, file);
     }
@@ -136,14 +137,14 @@ int process_ecc_install(char *slot_in, char *file) {
 
     if((slot < 0) || (slot > 31)) {
         //printf("Error, wrong slot number ");
-        return -1;
+        return 1;
     }
 
     // Opening file from which first 32B will be taken as private key
     FILE *fp = fopen(file, "rb");
     if (fp == NULL) {
         //perror("Error process_ecc_install() opening fileE");
-        return -1;
+        return 1;
     }
 
     // Read keypair from file into keypair[] buffer
@@ -158,19 +159,19 @@ int process_ecc_install(char *slot_in, char *file) {
     if(ret != LT_OK) {
         //printf("Error lt_init(): %s", lt_ret_verbose(ret));
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
     ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         //printf("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
     ret = lt_ecc_key_store(&h, slot, CURVE_ED25519, keypair); // Only first 32B will be taken
     if(ret != LT_OK) {
         //printf("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
 
     lt_deinit(&h);
@@ -182,7 +183,7 @@ int process_ecc_install(char *slot_in, char *file) {
 int process_ecc_generate(char *slot_in) {
     if(!slot_in) {
         //printf("Error, NULL parameters process_ecc_clear()\r\n");
-        return -1;
+        return 1;
     } else {
         //printf("Processing lt-util "ECC" "ECC_GENERATE" %s\r\n", slot_in);
     }
@@ -194,7 +195,7 @@ int process_ecc_generate(char *slot_in) {
 
     if((slot < 0) || (slot > 31)) {
         //printf("Error, wrong slot number ");
-        return -1;
+        return 1;
     }
 
     // Generate EdDSA  private key in a given slot
@@ -229,7 +230,7 @@ int process_ecc_download(char *slot_in, char *file) {
 
     if(!slot_in || !file) {
         //printf("Error, NULL parameters process_rng_get()\r\n");
-        return -1;
+        return 1;
     } else {
         //printf("Processing lt-util "ECC" "ECC_DOWNLOAD" %s %s\r\n", slot_in, file);
     }
@@ -241,14 +242,14 @@ int process_ecc_download(char *slot_in, char *file) {
 
     if((slot < 0) || (slot > 31)) {
         //printf("Error, wrong slot number ");
-        return -1;
+        return 1;
     }
 
     // Opening file
     FILE *fp = fopen(file, "wb");
     if (fp == NULL) {
         //perror("Error process_ecc_download() opening file");
-        return -1;
+        return 1;
     }
 
     // Get random bytes from TROPIC01
@@ -257,13 +258,13 @@ int process_ecc_download(char *slot_in, char *file) {
     lt_ret_t ret = lt_init(&h);
     if(ret != LT_OK) {
         //printf("Error lt_init(): %s", lt_ret_verbose(ret));
-        return -1;
+        return 1;
     }
     ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         //printf("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
@@ -271,7 +272,7 @@ int process_ecc_download(char *slot_in, char *file) {
     if(ret != LT_OK) {
         //printf("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
 
     size_t written = fwrite(pubkey, sizeof(uint8_t), 32, fp);
@@ -288,7 +289,7 @@ int process_ecc_download(char *slot_in, char *file) {
 int process_ecc_clear(char *slot_in) {
     if(!slot_in) {
         //printf("Error, NULL parameters process_ecc_clear()\r\n");
-        return -1;
+        return 1;
     } else {
         //printf("Processing lt-util "ECC" "ECC_CLEAR" %s\r\n", slot_in);
     }
@@ -300,7 +301,7 @@ int process_ecc_clear(char *slot_in) {
 
     if((slot < 0) || (slot > 31)) {
         //printf("Error, wrong slot number ");
-        return -1;
+        return 1;
     }
 
     // Clear given slot in TROPIC01
@@ -308,13 +309,13 @@ int process_ecc_clear(char *slot_in) {
     lt_ret_t ret = lt_init(&h);
     if(ret != LT_OK) {
         //printf("Error lt_init(): %s", lt_ret_verbose(ret));
-        return -1;
+        return 1;
     }
     ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         //printf("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
@@ -322,7 +323,7 @@ int process_ecc_clear(char *slot_in) {
     if(ret != LT_OK) {
         printf("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
 
     lt_deinit(&h);
@@ -334,7 +335,7 @@ int process_ecc_clear(char *slot_in) {
 int process_ecc_sign(char *slot_in, char *msg_file_in, char* signature_file_out) {
     if(!slot_in || !msg_file_in || !signature_file_out) {
         //printf("Error, NULL parameters process_rng_get()\r\n");
-        return -1;
+        return 1;
     } else {
         //printf("Processing lt-util "ECC" "ECC_SIGN" %s %s %s\r\n", slot_in, msg_file_in, signature_file_out);
     }
@@ -346,14 +347,14 @@ int process_ecc_sign(char *slot_in, char *msg_file_in, char* signature_file_out)
 
     if((slot < 0) || (slot > 31)) {
         //printf("Error, wrong slot number ");
-        return -1;
+        return 1;
     }
 
     // Opening file from which a hash will be read
     FILE *msg_fp = fopen(msg_file_in, "rb");
     if (msg_fp == NULL) {
         //perror("Error opening file");
-        return -1;
+        return 1;
     }
 
     fseek(msg_fp, 0L, SEEK_END);
@@ -364,7 +365,7 @@ int process_ecc_sign(char *slot_in, char *msg_file_in, char* signature_file_out)
     FILE *fp_sig = fopen(signature_file_out, "wb");
     if (fp_sig == NULL) {
         //perror("Error opening file");
-        return -1;
+        return 1;
     }
 
     // Read hash from file
@@ -378,20 +379,20 @@ int process_ecc_sign(char *slot_in, char *msg_file_in, char* signature_file_out)
     lt_ret_t ret = lt_init(&h);
     if(ret != LT_OK) {
         //printf("Error lt_init(): %s", lt_ret_verbose(ret));
-        return -1;
+        return 1;
     }
     ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         //printf("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
     uint8_t signature_rs[64] = {0};
     ret = lt_ecc_eddsa_sign(&h, (uint8_t)slot, msg, msg_size, signature_rs, 64);
     if(ret != LT_OK) {
         //printf("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
 
     // Write signature into file
@@ -400,7 +401,7 @@ int process_ecc_sign(char *slot_in, char *msg_file_in, char* signature_file_out)
         //printf("Error writing into file, written: %zu\n", written);
         fclose(fp_sig);
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
 
     fclose(fp_sig);
@@ -414,7 +415,7 @@ int process_ecc_sign(char *slot_in, char *msg_file_in, char* signature_file_out)
 int process_mem_store(char *slot_in, char *file) {
     if(!slot_in || !file) {
         //printf("Error, NULL parameters process_mem_store()\r\n");
-        return -1;
+        return 1;
     } else {
         //printf("Processing lt-util "MEM" "MEM_STORE" %s %s\r\n", slot_in, file);
     }
@@ -426,14 +427,14 @@ int process_mem_store(char *slot_in, char *file) {
 
     if((slot < 0) || (slot > 511)) {
         //printf("Error, wrong slot number ");
-        return -1;
+        return 1;
     }
 
     // Opening file
     FILE *fp = fopen(file, "rb");
     if (fp == NULL) {
         //perror("Error process_ecc_download() opening file");
-        return -1;
+        return 1;
     }
 
     fseek(fp, 0L, SEEK_END);
@@ -442,7 +443,7 @@ int process_mem_store(char *slot_in, char *file) {
 
     if((sz < 1) || (sz > 444)) {
         //printf("Error, size of file to store must be between 1 - 444 B\r\n");
-        return -1;
+        return 1;
     }
 
     // Read keypair from file into keypair[] buffer
@@ -450,7 +451,7 @@ int process_mem_store(char *slot_in, char *file) {
     size_t read = fread(mem_content, sizeof(uint8_t), sz, fp);
     if(read != sz) {
         //printf("Error when reading a file\r\n");
-        return -1;
+        return 1;
     }
     //printf("Number of elements read: %zu\n", read);
     fclose(fp);
@@ -460,20 +461,20 @@ int process_mem_store(char *slot_in, char *file) {
     lt_ret_t ret = lt_init(&h);
     if(ret != LT_OK) {
         //printf("Error lt_init(): %s", lt_ret_verbose(ret));
-        return -1;
+        return 1;
     }
     ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         //printf("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
 
     ret = lt_r_mem_data_write(&h, (uint16_t)slot, mem_content,(uint16_t)sz);
     if(ret != LT_OK) {
         //printf("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
 
     //fclose(fp);
@@ -488,7 +489,7 @@ int process_mem_store(char *slot_in, char *file) {
 int process_mem_read(char *slot_in, char *file) {
     if(!slot_in || !file) {
         //printf("Error, NULL parameters process_mem_read()\r\n");
-        return -1;
+        return 1;
     } else {
         //printf("Processing lt-util "MEM" "MEM_READ" %s %s\r\n", slot_in, file);
     }
@@ -500,14 +501,14 @@ int process_mem_read(char *slot_in, char *file) {
 
     if((slot < 0) || (slot > 511)) {
         //printf("Error, wrong slot number ");
-        return -1;
+        return 1;
     }
 
     // Opening file
     FILE *fp = fopen(file, "wb");
     if (fp == NULL) {
         //perror("Error process_ecc_download() opening file");
-        return -1;
+        return 1;
     }
 
     // Read keypair from file into keypair[] buffer
@@ -518,13 +519,13 @@ int process_mem_read(char *slot_in, char *file) {
     lt_ret_t ret = lt_init(&h);
     if(ret != LT_OK) {
         //printf("Error lt_init(): %s", lt_ret_verbose(ret));
-        return -1;
+        return 1;
     }
     ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         //printf("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
@@ -532,7 +533,7 @@ int process_mem_read(char *slot_in, char *file) {
     if(ret != LT_OK) {
         //printf("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
 
 
@@ -542,7 +543,7 @@ int process_mem_read(char *slot_in, char *file) {
         printf("Error writing into file, %zu written\n", written);
         fclose(fp);
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
 
     fclose(fp);
@@ -569,7 +570,7 @@ int process_mem_erase(char *slot_in)
 
     if((slot < 0) || (slot > 511)) {
         printf("Error, wrong slot number ");
-        return -1;
+        return 1;
     }
 
     // Clear given slot in TROPIC01
@@ -577,13 +578,13 @@ int process_mem_erase(char *slot_in)
     lt_ret_t ret = lt_init(&h);
     if(ret != LT_OK) {
         //printf("Error lt_init(): %s", lt_ret_verbose(ret));
-        return -1;
+        return 1;
     }
     ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         //printf("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
@@ -591,7 +592,7 @@ int process_mem_erase(char *slot_in)
     if(ret != LT_OK) {
         //printf("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(&h);
-        return -1;
+        return 1;
     }
 
     lt_deinit(&h);
@@ -611,8 +612,7 @@ int main(int argc, char *argv[]) {
     if (argc == 4) {
         // RNG
         if(strcmp(argv[1], RNG) == 0) {
-            process_rng_get(argv[2], argv[3]);
-            return 0;
+            return process_rng_get(argv[2], argv[3]);
         }
         // ECC 4 arguments
         else if(strcmp(argv[1], ECC) == 0) {
@@ -620,44 +620,37 @@ int main(int argc, char *argv[]) {
                 process_ecc_generate(argv[3]);
                 return 0;
             } else if (strcmp(argv[2], ECC_CLEAR) == 0) {
-                process_ecc_clear(argv[3]);
-                return 0;
+                return process_ecc_clear(argv[3]);
             }
         }
         // MEM 4 arguments
         else if(strcmp(argv[1], MEM) == 0) {
             if (strcmp(argv[2], MEM_ERASE) == 0) {
-                process_mem_erase(argv[3]);
-                return 0;
+                return process_mem_erase(argv[3]);
             }
         }
     } else if (argc == 5) {
         if(strcmp(argv[1], ECC) == 0) {
             if (strcmp(argv[2], ECC_INSTALL) == 0) {
-                process_ecc_install(argv[3], argv[4]);
-                return 0;
+                return process_ecc_install(argv[3], argv[4]);
             } else if (strcmp(argv[2], ECC_DOWNLOAD) == 0) {
-                process_ecc_download(argv[3], argv[4]);
-                return 0;
+                return process_ecc_download(argv[3], argv[4]);
             }
         } else if(strcmp(argv[1], MEM) == 0) {
             if (strcmp(argv[2], MEM_STORE) == 0) {
-                process_mem_store(argv[3], argv[4]);
-                return 0;
+                return process_mem_store(argv[3], argv[4]);
             } else if (strcmp(argv[2], MEM_READ) == 0) {
-                process_mem_read(argv[3], argv[4]);
-                return 0;
+                return process_mem_read(argv[3], argv[4]);
             }
         }
     } else if (argc == 6) {
         if(strcmp(argv[1], ECC) == 0) {
             if (strcmp(argv[2], ECC_SIGN) == 0) {
-                process_ecc_sign(argv[3], argv[4], argv[5]);
-                return 0;
+                return process_ecc_sign(argv[3], argv[4], argv[5]);
             }
         }
     }
 
     printf("ERROR wrong parameters entered\r\n");
-    return -1;
+    return 1;
 }
