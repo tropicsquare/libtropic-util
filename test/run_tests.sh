@@ -5,6 +5,10 @@ PATH_TO_BUILD="../build"
 cd ${PATH_TO_BUILD}
 
 echo ""
+echo "[COMMAND] RNG test expected fails with invalid length:"
+./lt-util -r -1 message; echo "  Status: " $?
+./lt-util -r 0 message; echo "  Status: " $?
+./lt-util -r 256 message; echo "  Status: " $?
 echo "[COMMAND] Get 32 random bytes and save as message:"
 ./lt-util -r 32 message; echo "  Status: " $?
 #xxd -p ${PATH_TO_BUILD}/message | tr -d '\n' && echo ""
