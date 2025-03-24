@@ -3,6 +3,8 @@
 [!WARNING]
 This software shall not be used in production. Use with care.
 
+Contributors, please follow [guidelines](https://github.com/tropicsquare/libtropic-util/blob/main/CONTRIBUTING.md).
+
 # Example usage:
 
 Basically this is a C wrapper for libtropic library. Once compiled, it can be executed from bash and used for direct access to TROPIC01 features.
