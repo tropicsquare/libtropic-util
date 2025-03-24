@@ -69,7 +69,7 @@ int process_rng_get(char *count_in, char *file) {
     // Parsing count number
     char *endptr;
     long int count = strtol(count_in, &endptr, 10);
-    if((count > RANDOM_VALUE_GET_LEN_MAX) | (count < 0)) {
+    if((count > RANDOM_VALUE_GET_LEN_MAX) | (count <= 0)) {
         //printf("Invalid length passed, use number between 0-255");
         return 1;
     }
