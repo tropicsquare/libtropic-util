@@ -22,9 +22,8 @@
 // Default factory pairing keys
 int8_t pkey_index_0 =  PAIRING_KEY_SLOT_INDEX_0;
 // Engineering samples 01 keys:
-uint8_t sh0priv[] = {0xd0,0x99,0x92,0xb1,0xf1,0x7a,0xbc,0x4d,0xb9,0x37,0x17,0x68,0xa2,0x7d,0xa0,0x5b,0x18,0xfa,0xb8,0x56,0x13,0xa7,0x84,0x2c,0xa6,0x4c,0x79,0x10,0xf2,0x2e,0x71,0x6b};
-uint8_t sh0pub[]  = {0xe7,0xf7,0x35,0xba,0x19,0xa3,0x3f,0xd6,0x73,0x23,0xab,0x37,0x26,0x2d,0xe5,0x36,0x08,0xca,0x57,0x85,0x76,0x53,0x43,0x52,0xe1,0x8f,0x64,0xe6,0x13,0xd3,0x8d,0x54};
-//Model keys:
+uint8_t sh0priv[] = {0x28,0x3F,0x5A,0x0F,0xFC,0x41,0xCF,0x50,0x98,0xA8,0xE1,0x7D,0xB6,0x37,0x2C,0x3C,0xAA,0xD1,0xEE,0xEE,0xDF,0x0F,0x75,0xBC,0x3F,0xBF,0xCD,0x9C,0xAB,0x3D,0xE9,0x72};
+uint8_t sh0pub[]  = {0xF9,0x75,0xEB,0x3C,0x2F,0xD7,0x90,0xC9,0x6F,0x29,0x4F,0x15,0x57,0xA5,0x03,0x17,0x80,0xC9,0xAA,0xFA,0x14,0x0D,0xA2,0x8F,0x55,0xE7,0x51,0x57,0x37,0xB2,0x50,0x2C};//Model keys:
 //uint8_t sh0priv[] = {0xf0,0xc4,0xaa,0x04,0x8f,0x00,0x13,0xa0,0x96,0x84,0xdf,0x05,0xe8,0xa2,0x2e,0xf7,0x21,0x38,0x98,0x28,0x2b,0xa9,0x43,0x12,0xf3,0x13,0xdf,0x2d,0xce,0x8d,0x41,0x64};
 //uint8_t sh0pub[]  = {0x84,0x2f,0xe3,0x21,0xa8,0x24,0x74,0x08,0x37,0x37,0xff,0x2b,0x9b,0x88,0xa2,0xaf,0x42,0x44,0x2d,0xb0,0xd8,0xaa,0xcc,0x6d,0xc6,0x9e,0x99,0x53,0x33,0x44,0xb2,0x46};
 // RNG
@@ -58,7 +57,7 @@ void print_usage(void) {
 }
 
 
-int process_rng_get(char *count_in, char *file) {
+int process_rng_get(lt_handle_t *h, char *count_in, char *file) {
     if(!count_in || !file) {
         //printf("Error, NULL parameters process_rng_get()\r\n");
         return 1;
@@ -84,23 +83,23 @@ int process_rng_get(char *count_in, char *file) {
 
     // Get random bytes from TROPIC01 into bytes[] buffer
     uint8_t bytes[RANDOM_VALUE_GET_LEN_MAX] = {0};
-    lt_handle_t h;
+    //lt_handle_t h;
     lt_ret_t ret;
-    ret = lt_init(&h);
+    ret = lt_init(h);
     if(ret != LT_OK) {
         //printf("Error lt_init(): %s", lt_ret_verbose(ret));
         return ret;
     }
-    ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
+    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         //printf("Error sec channel: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return ret;
     }
-    ret = lt_random_get(&h, bytes, count);
+    ret = lt_random_get(h, bytes, count);
     if(ret != LT_OK) {
         //printf("Error l3 cmd: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return ret;
     }
 
@@ -109,7 +108,7 @@ int process_rng_get(char *count_in, char *file) {
     if(written !=count) {
         //printf("Error writing into file, %zu written\n", written);
         fclose(fp);
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
 
@@ -117,12 +116,12 @@ int process_rng_get(char *count_in, char *file) {
 
     fclose(fp);
 
-    lt_deinit(&h);
+    lt_deinit(h);
 
     return 0;
 }
 
-int process_ecc_install(char *slot_in, char *file) {
+int process_ecc_install(lt_handle_t *h, char *slot_in, char *file) {
     if(!slot_in || !file) {
         //printf("Error, NULL parameters process_rng_get()\r\n");
         return 1;
@@ -154,33 +153,33 @@ int process_ecc_install(char *slot_in, char *file) {
     fclose(fp);
 
     // Install first 32B from keypair[] into ecc slot priv key
-    lt_handle_t h;
-    lt_ret_t ret = lt_init(&h);
+    //lt_handle_t h;
+    lt_ret_t ret = lt_init(h);
     if(ret != LT_OK) {
         //printf("Error lt_init(): %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
-    ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
+    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         //printf("Error sec channel: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
-    ret = lt_ecc_key_store(&h, slot, CURVE_ED25519, keypair); // Only first 32B will be taken
+    ret = lt_ecc_key_store(h, slot, CURVE_ED25519, keypair); // Only first 32B will be taken
     if(ret != LT_OK) {
         //printf("Error l3 cmd: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
 
-    lt_deinit(&h);
+    lt_deinit(h);
 
     //printf("OK\r\n");
     return 0;
 }
 
-int process_ecc_generate(char *slot_in) {
+int process_ecc_generate(lt_handle_t *h, char *slot_in) {
     if(!slot_in) {
         //printf("Error, NULL parameters process_ecc_clear()\r\n");
         return 1;
@@ -199,34 +198,34 @@ int process_ecc_generate(char *slot_in) {
     }
 
     // Generate EdDSA  private key in a given slot
-    lt_handle_t h;
-    lt_ret_t ret = lt_init(&h);
+    //lt_handle_t h;
+    lt_ret_t ret = lt_init(h);
     if(ret != LT_OK) {
         printf("Error lt_init(): %s", lt_ret_verbose(ret));
         return ret;
     }
-    ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
+    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         printf("Error sec channel: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return ret;
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
-    ret = lt_ecc_key_generate(&h, (uint8_t)slot, CURVE_ED25519);
+    ret = lt_ecc_key_generate(h, (uint8_t)slot, CURVE_ED25519);
     if(ret != LT_OK) {
         printf("Error l3 cmd: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return ret;
     }
 
-    lt_deinit(&h);
+    lt_deinit(h);
 
     //printf("OK\r\n");
     return 0;
 }
 
-int process_ecc_download(char *slot_in, char *file) {
+int process_ecc_download(lt_handle_t *h, char *slot_in, char *file) {
 
     if(!slot_in || !file) {
         //printf("Error, NULL parameters process_rng_get()\r\n");
@@ -254,24 +253,24 @@ int process_ecc_download(char *slot_in, char *file) {
 
     // Get random bytes from TROPIC01
     uint8_t pubkey[64] = {0};
-    lt_handle_t h;
-    lt_ret_t ret = lt_init(&h);
+    //lt_handle_t h;
+    lt_ret_t ret = lt_init(h);
     if(ret != LT_OK) {
         //printf("Error lt_init(): %s", lt_ret_verbose(ret));
         return 1;
     }
-    ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
+    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         //printf("Error sec channel: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
-    ret = lt_ecc_key_read(&h, (uint8_t)slot, pubkey, 64, &curve, &origin);
+    ret = lt_ecc_key_read(h, (uint8_t)slot, pubkey, 64, &curve, &origin);
     if(ret != LT_OK) {
         //printf("Error l3 cmd: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
 
@@ -280,13 +279,13 @@ int process_ecc_download(char *slot_in, char *file) {
 
     fclose(fp);
 
-    lt_deinit(&h);
+    lt_deinit(h);
 
     //printf("OK\r\n");
     return 0;
 }
 
-int process_ecc_clear(char *slot_in) {
+int process_ecc_clear(lt_handle_t *h, char *slot_in) {
     if(!slot_in) {
         //printf("Error, NULL parameters process_ecc_clear()\r\n");
         return 1;
@@ -305,34 +304,34 @@ int process_ecc_clear(char *slot_in) {
     }
 
     // Clear given slot in TROPIC01
-    lt_handle_t h;
-    lt_ret_t ret = lt_init(&h);
+    //lt_handle_t h;
+    lt_ret_t ret = lt_init(h);
     if(ret != LT_OK) {
         //printf("Error lt_init(): %s", lt_ret_verbose(ret));
         return 1;
     }
-    ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
+    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         //printf("Error sec channel: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
-    ret = lt_ecc_key_erase(&h, (uint8_t)slot);
+    ret = lt_ecc_key_erase(h, (uint8_t)slot);
     if(ret != LT_OK) {
         printf("Error l3 cmd: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
 
-    lt_deinit(&h);
+    lt_deinit(h);
 
     //printf("OK\r\n");
     return 0;
 }
 
-int process_ecc_sign(char *slot_in, char *msg_file_in, char* signature_file_out) {
+int process_ecc_sign(lt_handle_t *h, char *slot_in, char *msg_file_in, char* signature_file_out) {
     if(!slot_in || !msg_file_in || !signature_file_out) {
         //printf("Error, NULL parameters process_rng_get()\r\n");
         return 1;
@@ -375,23 +374,23 @@ int process_ecc_sign(char *slot_in, char *msg_file_in, char* signature_file_out)
     fclose(msg_fp);
 
     // Sign hash in TROPIC01
-    lt_handle_t h;
-    lt_ret_t ret = lt_init(&h);
+    //lt_handle_t h;
+    lt_ret_t ret = lt_init(h);
     if(ret != LT_OK) {
         //printf("Error lt_init(): %s", lt_ret_verbose(ret));
         return 1;
     }
-    ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
+    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         //printf("Error sec channel: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
     uint8_t signature_rs[64] = {0};
-    ret = lt_ecc_eddsa_sign(&h, (uint8_t)slot, msg, msg_size, signature_rs, 64);
+    ret = lt_ecc_eddsa_sign(h, (uint8_t)slot, msg, msg_size, signature_rs, 64);
     if(ret != LT_OK) {
         //printf("Error l3 cmd: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
 
@@ -400,19 +399,19 @@ int process_ecc_sign(char *slot_in, char *msg_file_in, char* signature_file_out)
     if(written != 64) {
         //printf("Error writing into file, written: %zu\n", written);
         fclose(fp_sig);
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
 
     fclose(fp_sig);
 
-    lt_deinit(&h);
+    lt_deinit(h);
 
     //printf("OK\r\n");
     return 0;
 }
 
-int process_mem_store(char *slot_in, char *file) {
+int process_mem_store(lt_handle_t *h, char *slot_in, char *file) {
     if(!slot_in || !file) {
         //printf("Error, NULL parameters process_mem_store()\r\n");
         return 1;
@@ -457,36 +456,36 @@ int process_mem_store(char *slot_in, char *file) {
     fclose(fp);
 
     // Store the content into r memory slot
-    lt_handle_t h;
-    lt_ret_t ret = lt_init(&h);
+    //lt_handle_t h;
+    lt_ret_t ret = lt_init(h);
     if(ret != LT_OK) {
         //printf("Error lt_init(): %s", lt_ret_verbose(ret));
         return 1;
     }
-    ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
+    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         //printf("Error sec channel: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
 
-    ret = lt_r_mem_data_write(&h, (uint16_t)slot, mem_content,(uint16_t)sz);
+    ret = lt_r_mem_data_write(h, (uint16_t)slot, mem_content,(uint16_t)sz);
     if(ret != LT_OK) {
         //printf("Error l3 cmd: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
 
     //fclose(fp);
 
-    lt_deinit(&h);
+    lt_deinit(h);
 
     //printf("OK\r\n");
     return 0;
 
 }
 
-int process_mem_read(char *slot_in, char *file) {
+int process_mem_read(lt_handle_t *h, char *slot_in, char *file) {
     if(!slot_in || !file) {
         //printf("Error, NULL parameters process_mem_read()\r\n");
         return 1;
@@ -515,24 +514,24 @@ int process_mem_read(char *slot_in, char *file) {
     uint8_t mem_content[444] = {0};
 
     // Store the content into r memory slot
-    lt_handle_t h;
-    lt_ret_t ret = lt_init(&h);
+    //lt_handle_t h;
+    lt_ret_t ret = lt_init(h);
     if(ret != LT_OK) {
         //printf("Error lt_init(): %s", lt_ret_verbose(ret));
         return 1;
     }
-    ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
+    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         //printf("Error sec channel: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
-    ret = lt_r_mem_data_read(&h, (uint16_t)slot, mem_content, 32);
+    ret = lt_r_mem_data_read(h, (uint16_t)slot, mem_content, 32);
     if(ret != LT_OK) {
         //printf("Error l3 cmd: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
 
@@ -542,20 +541,20 @@ int process_mem_read(char *slot_in, char *file) {
     if(written != 32) {
         printf("Error writing into file, %zu written\n", written);
         fclose(fp);
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
 
     fclose(fp);
 
-    lt_deinit(&h);
+    lt_deinit(h);
 
     //printf("OK\r\n");
     return 0;
 
 }
 
-int process_mem_erase(char *slot_in)
+int process_mem_erase(lt_handle_t *h, char *slot_in)
 {
     if(!slot_in) {
         printf("Error, NULL parameters process_mem_erase()\r\n");
@@ -574,28 +573,28 @@ int process_mem_erase(char *slot_in)
     }
 
     // Clear given slot in TROPIC01
-    lt_handle_t h;
-    lt_ret_t ret = lt_init(&h);
+    //lt_handle_t h;
+    lt_ret_t ret = lt_init(h);
     if(ret != LT_OK) {
         //printf("Error lt_init(): %s", lt_ret_verbose(ret));
         return 1;
     }
-    ret = verify_chip_and_start_secure_session(&h, sh0priv, sh0pub, pkey_index_0);
+    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         //printf("Error sec channel: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
-    ret = lt_r_mem_data_erase(&h, (uint16_t)slot);
+    ret = lt_r_mem_data_erase(h, (uint16_t)slot);
     if(ret != LT_OK) {
         //printf("Error l3 cmd: %s", lt_ret_verbose(ret));
-        lt_deinit(&h);
+        lt_deinit(h);
         return 1;
     }
 
-    lt_deinit(&h);
+    lt_deinit(h);
 
     ////printf("OK\r\n");
     return 0;
@@ -609,44 +608,46 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    lt_handle_t h;
+
     if (argc == 4) {
         // RNG
         if(strcmp(argv[1], RNG) == 0) {
-            return process_rng_get(argv[2], argv[3]);
+            return process_rng_get(&h, argv[2], argv[3]);
         }
         // ECC 4 arguments
         else if(strcmp(argv[1], ECC) == 0) {
             if (strcmp(argv[2], ECC_GENERATE) == 0) {
-                process_ecc_generate(argv[3]);
+                process_ecc_generate(&h, argv[3]);
                 return 0;
             } else if (strcmp(argv[2], ECC_CLEAR) == 0) {
-                return process_ecc_clear(argv[3]);
+                return process_ecc_clear(&h, argv[3]);
             }
         }
         // MEM 4 arguments
         else if(strcmp(argv[1], MEM) == 0) {
             if (strcmp(argv[2], MEM_ERASE) == 0) {
-                return process_mem_erase(argv[3]);
+                return process_mem_erase(&h, argv[3]);
             }
         }
     } else if (argc == 5) {
         if(strcmp(argv[1], ECC) == 0) {
             if (strcmp(argv[2], ECC_INSTALL) == 0) {
-                return process_ecc_install(argv[3], argv[4]);
+                return process_ecc_install(&h, argv[3], argv[4]);
             } else if (strcmp(argv[2], ECC_DOWNLOAD) == 0) {
-                return process_ecc_download(argv[3], argv[4]);
+                return process_ecc_download(&h, argv[3], argv[4]);
             }
         } else if(strcmp(argv[1], MEM) == 0) {
             if (strcmp(argv[2], MEM_STORE) == 0) {
-                return process_mem_store(argv[3], argv[4]);
+                return process_mem_store(&h, argv[3], argv[4]);
             } else if (strcmp(argv[2], MEM_READ) == 0) {
-                return process_mem_read(argv[3], argv[4]);
+                return process_mem_read(&h, argv[3], argv[4]);
             }
         }
     } else if (argc == 6) {
         if(strcmp(argv[1], ECC) == 0) {
             if (strcmp(argv[2], ECC_SIGN) == 0) {
-                return process_ecc_sign(argv[3], argv[4], argv[5]);
+                return process_ecc_sign(&h, argv[3], argv[4], argv[5]);
             }
         }
     }
