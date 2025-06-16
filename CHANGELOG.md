@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- When compiled with USB_DONGLE=1 interface now accepts serialport (not hardcoded anymore)
+- When compiled with `USB_DONGLE=1` interface now accepts serialport (not hardcoded anymore)
+- When compiled with `HW_SPI=1`, serialport parameter is not available, so it was removed.
 
 ### Added
 

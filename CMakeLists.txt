@@ -63,6 +63,14 @@ target_compile_options(tropic PRIVATE -Wall)
 target_compile_options(tropic PRIVATE -ffunction-sections -fdata-sections)
 target_compile_options(tropic PRIVATE -Wno-implicit-function-declaration)
 
+if(USB_DONGLE)
+    target_compile_definitions(lt-util PRIVATE USB_DONGLE)
+endif()
+
+if(HW_SPI)
+    target_compile_definitions(lt-util PRIVATE HW_SPI)
+endif()
+
 
 ###########################################################################
 #                                                                         #
