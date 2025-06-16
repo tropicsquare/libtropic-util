@@ -14,15 +14,15 @@ $ ./lt-util
 
 Usage:
 
-	./lt-util -r    [count] [file]            # Random  - Get number of random bytes and store them into file
-	./lt-util -e -i [slot]  [file]            # ECC key - Install private key from keypair.bin into a given slot
-	./lt-util -e -g [slot]                    # ECC key - Generate private key in a given slot
-	./lt-util -e -d [slot]  [file]            # ECC key - Download public key from given slot into file
-	./lt-util -e -c [slot]                    # ECC key - Clear given ECC slot
-	./lt-util -e -s [slot]  [file1] [file2]   # ECC key - Sign content of file1 with key from a given slot and store resulting signature into file2
-	./lt-util -m -s [slot]  [file]            # Memory  - Store content of filename into memory slot
-	./lt-util -m -r [slot]  [file]            # Memory  - Read content of memory slot into filename
-	./lt-util -m -e [slot]                    # Memory  - Erase content of memory slot
+	./lt-util <serialport> -r    [count] [file]            # Random  - Get number of random bytes and store them into file
+	./lt-util <serialport> -e -i [slot]  [file]            # ECC key - Install private key from keypair.bin into a given slot
+	./lt-util <serialport> -e -g [slot]                    # ECC key - Generate private key in a given slot
+	./lt-util <serialport> -e -d [slot]  [file]            # ECC key - Download public key from given slot into file
+	./lt-util <serialport> -e -c [slot]                    # ECC key - Clear given ECC slot
+	./lt-util <serialport> -e -s [slot]  [file1] [file2]   # ECC key - Sign content of file1 with key from a given slot and store resulting signature into file2
+	./lt-util <serialport> -m -s [slot]  [file]            # Memory  - Store content of filename into memory slot
+	./lt-util <serialport> -m -r [slot]  [file]            # Memory  - Read content of memory slot into filename
+	./lt-util <serialport> -m -e [slot]                    # Memory  - Erase content of memory slot
 
 ```
 

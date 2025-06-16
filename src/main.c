@@ -43,16 +43,16 @@ uint8_t sh0pub[]  = {0xF9,0x75,0xEB,0x3C,0x2F,0xD7,0x90,0xC9,0x6F,0x29,0x4F,0x15
 
 
 void print_usage(void) {
-    printf("\r\nUsage:\r\n\n"
-"\t./lt-util "RNG"    [count] [file]            # Random  - Get 1-255 random bytes and store them into file\r\n"
-"\t./lt-util "ECC" "  ECC_INSTALL" [slot]  [file]            # ECC key - Install private key from keypair.bin into a given slot\r\n"
-"\t./lt-util "ECC" " ECC_GENERATE" [slot]                    # ECC key - Generate private key in a given slot\r\n"
-"\t./lt-util "ECC" " ECC_DOWNLOAD" [slot]  [file]            # ECC key - Download public key from given slot into file\r\n"
-"\t./lt-util "ECC" " ECC_CLEAR" [slot]                    # ECC key - Clear given ECC slot\r\n"
-"\t./lt-util "ECC" " ECC_SIGN" [slot]  [file1] [file2]   # ECC key - Sign content of file1 (max size is 4095B) with key from a given slot and store resulting signature into file2\r\n"
-"\t./lt-util "MEM" " MEM_STORE" [slot]  [file]            # Memory  - Store content of filename (max size is 444B)  into memory slot\r\n"
-"\t./lt-util "MEM" " MEM_READ" [slot]  [file]            # Memory  - Read content of memory slot (max size is 444B) into filename\r\n"
-"\t./lt-util "MEM" " MEM_ERASE" [slot]                    # Memory  - Erase content of memory slot\r\n\n"
+    printf("\r\nUsage (first parameter is serialport with usb dongle, update it if needed):\r\n\n"
+"\t./lt-util /dev/ttyACM0 "RNG"    [count] [file]            # Random  - Get 1-255 random bytes and store them into file\r\n"
+"\t./lt-util /dev/ttyACM0 "ECC" "  ECC_INSTALL" [slot]  [file]            # ECC key - Install private key from keypair.bin into a given slot\r\n"
+"\t./lt-util /dev/ttyACM0 "ECC" " ECC_GENERATE" [slot]                    # ECC key - Generate private key in a given slot\r\n"
+"\t./lt-util /dev/ttyACM0 "ECC" " ECC_DOWNLOAD" [slot]  [file]            # ECC key - Download public key from given slot into file\r\n"
+"\t./lt-util /dev/ttyACM0 "ECC" " ECC_CLEAR" [slot]                    # ECC key - Clear given ECC slot\r\n"
+"\t./lt-util /dev/ttyACM0 "ECC" " ECC_SIGN" [slot]  [file1] [file2]   # ECC key - Sign content of file1 (max size is 4095B) with key from a given slot and store resulting signature into file2\r\n"
+"\t./lt-util /dev/ttyACM0 "MEM" " MEM_STORE" [slot]  [file]            # Memory  - Store content of filename (max size is 444B)  into memory slot\r\n"
+"\t./lt-util /dev/ttyACM0 "MEM" " MEM_READ" [slot]  [file]            # Memory  - Read content of memory slot (max size is 444B) into filename\r\n"
+"\t./lt-util /dev/ttyACM0 "MEM" " MEM_ERASE" [slot]                    # Memory  - Erase content of memory slot\r\n\n"
 "\t All commands return 0 if success, otherwise 1\r\n\n");
 }
 
@@ -609,45 +609,49 @@ int main(int argc, char *argv[]) {
     }
 
     lt_handle_t h;
+    lt_uart_def_unix_t uart = {0};
+    h.l2.device = &uart;
+    uart.baud_rate = 115200;
+    strncpy(uart.device, argv[1], UART_DEV_MAX_LEN);
 
-    if (argc == 4) {
+    if (argc == 5) {
         // RNG
-        if(strcmp(argv[1], RNG) == 0) {
-            return process_rng_get(&h, argv[2], argv[3]);
+        if(strcmp(argv[2], RNG) == 0) {
+            return process_rng_get(&h, argv[3], argv[4]);
         }
-        // ECC 4 arguments
-        else if(strcmp(argv[1], ECC) == 0) {
-            if (strcmp(argv[2], ECC_GENERATE) == 0) {
-                process_ecc_generate(&h, argv[3]);
+        // ECC 5 arguments
+        else if(strcmp(argv[2], ECC) == 0) {
+            if (strcmp(argv[3], ECC_GENERATE) == 0) {
+                process_ecc_generate(&h, argv[4]);
                 return 0;
-            } else if (strcmp(argv[2], ECC_CLEAR) == 0) {
-                return process_ecc_clear(&h, argv[3]);
+            } else if (strcmp(argv[3], ECC_CLEAR) == 0) {
+                return process_ecc_clear(&h, argv[4]);
             }
         }
         // MEM 4 arguments
-        else if(strcmp(argv[1], MEM) == 0) {
-            if (strcmp(argv[2], MEM_ERASE) == 0) {
-                return process_mem_erase(&h, argv[3]);
-            }
-        }
-    } else if (argc == 5) {
-        if(strcmp(argv[1], ECC) == 0) {
-            if (strcmp(argv[2], ECC_INSTALL) == 0) {
-                return process_ecc_install(&h, argv[3], argv[4]);
-            } else if (strcmp(argv[2], ECC_DOWNLOAD) == 0) {
-                return process_ecc_download(&h, argv[3], argv[4]);
-            }
-        } else if(strcmp(argv[1], MEM) == 0) {
-            if (strcmp(argv[2], MEM_STORE) == 0) {
-                return process_mem_store(&h, argv[3], argv[4]);
-            } else if (strcmp(argv[2], MEM_READ) == 0) {
-                return process_mem_read(&h, argv[3], argv[4]);
+        else if(strcmp(argv[2], MEM) == 0) {
+            if (strcmp(argv[3], MEM_ERASE) == 0) {
+                return process_mem_erase(&h, argv[4]);
             }
         }
     } else if (argc == 6) {
-        if(strcmp(argv[1], ECC) == 0) {
-            if (strcmp(argv[2], ECC_SIGN) == 0) {
-                return process_ecc_sign(&h, argv[3], argv[4], argv[5]);
+        if(strcmp(argv[2], ECC) == 0) {
+            if (strcmp(argv[3], ECC_INSTALL) == 0) {
+                return process_ecc_install(&h, argv[4], argv[5]);
+            } else if (strcmp(argv[3], ECC_DOWNLOAD) == 0) {
+                return process_ecc_download(&h, argv[4], argv[5]);
+            }
+        } else if(strcmp(argv[2], MEM) == 0) {
+            if (strcmp(argv[3], MEM_STORE) == 0) {
+                return process_mem_store(&h, argv[4], argv[5]);
+            } else if (strcmp(argv[3], MEM_READ) == 0) {
+                return process_mem_read(&h, argv[4], argv[5]);
+            }
+        }
+    } else if (argc == 7) {
+        if(strcmp(argv[2], ECC) == 0) {
+            if (strcmp(argv[3], ECC_SIGN) == 0) {
+                return process_ecc_sign(&h, argv[4], argv[5], argv[6]);
             }
         }
     }
