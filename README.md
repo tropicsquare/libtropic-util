@@ -1,13 +1,35 @@
 # lt-util
 
 [!WARNING]
-This software shall not be used in production. Use with care.
+This software shall not be used in production. Use with care. Basically this is a C wrapper for libtropic library. Once compiled, it can be executed from bash and used for direct access to TROPIC01 features. 
 
 Contributors, please follow [guidelines](https://github.com/tropicsquare/libtropic-util/blob/main/CONTRIBUTING.md).
 
-# Example usage:
+## Clone
 
-Basically this is a C wrapper for libtropic library. Once compiled, it can be executed from bash and used for direct access to TROPIC01 features.
+Use following command to clone repository:
+```
+$ git clone --recurse-submodules https://github.com/tropicsquare/libtropic-util
+```
+
+and follow building instruction based on what hardware you have.
+
+
+## Compile
+
+Compilation differs based on what hardware are you compiling for. At the moment we support two hardware devkits - `raspberrypi shield` or `USB dongle`.
+
+# USB Dongle with TROPIC01 chip
+
+One-liner for compiling:
+
+```
+mkdir build &&  cd build && cmake -DUSB_DONGLE=1 .. && make && cd ../
+```
+
+Binary will be produced in `build/` folder.
+
+When compiled for USB dongle, interface allows to specify serialport.
 
 ```
 $ ./lt-util
@@ -27,35 +49,11 @@ Usage:
 ```
 
 
-# Clone
-
-Use following command to clone repository:
-```
-$ git clone --recurse-submodules https://github.com/tropicsquare/libtropic-util
-```
-
-and follow building instruction based on what hardware you have.
-
-
-# Compile
-
-Compilation differs based on what hardware are you compiling for. At the moment we support two hardware devkits - `raspberrypi shield` or `USB dongle`.
-
-## USB Dongle with TROPIC01 chip
-
-One-liner for compiling:
-
-```
-mkdir build &&  cd build && cmake -DUSB_DONGLE=1 .. && make && cd ../
-```
-
-Binary will be produced in `build/` folder.
-
-## Raspberry Pi shield (uses hw SPI)
+# Raspberry Pi shield (uses hw SPI)
 
 There is more instructions when compiling for our raspberrypi shield.
 
-### Wiring
+## Wire chip
 
 If you have our official shield, put jumper on CS2 position, otherwise wire TROPIC01 according to following scheme:
 
@@ -84,7 +82,7 @@ If you have our official shield, put jumper on CS2 position, otherwise wire TROP
 
 ```
 
-### Dependencies
+## Install dependencies
 
 Enable hardware spi:
 
@@ -121,12 +119,32 @@ System details:
 
 ```
 
-### Compiling
+## Compile
 
 One-liner for compiling (tested on rpi3 and rpi4):
 
 ```
 mkdir build &&  cd build && cmake -DHW_SPI=1 .. && make && cd ../
 ```
-Binary will be produced in `build/` folder.
+Binary will be produced in `build/` folder. When compiled with `HW-SPI=1`, note that serialport parameter is not available.
 
+```
+ $ ./build/lt-util 
+
+Usage:
+
+	./lt-util -r    [count] [file]            # Random  - Get 1-255 random bytes and store them into file
+	./lt-util -e -i [slot]  [file]            # ECC key - Install private key from keypair.bin into a given slot
+	./lt-util -e -g [slot]                    # ECC key - Generate private key in a given slot
+	./lt-util -e -d [slot]  [file]            # ECC key - Download public key from given slot into file
+	./lt-util -e -c [slot]                    # ECC key - Clear given ECC slot
+	./lt-util -e -s [slot]  [file1] [file2]   # ECC key - Sign content of file1 (max size is 4095B) with key from a given slot and store resulting signature into file2
+	./lt-util -m -s [slot]  [file]            # Memory  - Store content of filename (max size is 444B)  into memory slot
+	./lt-util -m -r [slot]  [file]            # Memory  - Read content of memory slot (max size is 444B) into filename
+	./lt-util -m -e [slot]                    # Memory  - Erase content of memory slot
+
+```
+
+# Test
+
+Check out `test` folder, there is a README.md with steps how to test if everything works properly. There is a testing script for each compiled version.
