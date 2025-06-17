@@ -19,6 +19,9 @@ and follow building instruction based on what hardware you have.
 
 Compilation differs based on what hardware are you compiling for. At the moment we support two hardware devkits - `raspberrypi shield` or `USB dongle`.
 
+We populated all devkits with two versions of TROPIC01 engineering samples, each of them has different "pairing keys" (read datasheet for more info).
+Specify them by uncommenting/commenting line 25, 26 or 28, 29 in `src/main.c.`, you have just two options, one of them will work.
+
 # USB Dongle with TROPIC01 chip
 
 One-liner for compiling:
