@@ -19,9 +19,6 @@ and follow building instruction based on what hardware you have.
 
 Compilation differs based on what hardware are you compiling for. At the moment we support two hardware devkits - `raspberrypi shield` or `USB dongle`.
 
-We populated all devkits with two versions of TROPIC01 engineering samples, each of them has different "pairing keys" (read datasheet for more info).
-Specify them by uncommenting/commenting line 25, 26 or 28, 29 in `src/main.c.`, you have just two options, one of them will work.
-
 # USB Dongle with TROPIC01 chip
 
 One-liner for compiling:
@@ -38,18 +35,30 @@ When compiled for USB dongle, interface allows to specify serialport.
 $ ./lt-util
 
 Usage:
+Usage (first parameter is serialport with usb dongle, update it if needed):
 
-	./lt-util <serialport> -r    [count] [file]            # Random  - Get number of random bytes and store them into file
-	./lt-util <serialport> -e -i [slot]  [file]            # ECC key - Install private key from keypair.bin into a given slot
-	./lt-util <serialport> -e -g [slot]                    # ECC key - Generate private key in a given slot
-	./lt-util <serialport> -e -d [slot]  [file]            # ECC key - Download public key from given slot into file
-	./lt-util <serialport> -e -c [slot]                    # ECC key - Clear given ECC slot
-	./lt-util <serialport> -e -s [slot]  [file1] [file2]   # ECC key - Sign content of file1 with key from a given slot and store resulting signature into file2
-	./lt-util <serialport> -m -s [slot]  [file]            # Memory  - Store content of filename into memory slot
-	./lt-util <serialport> -m -r [slot]  [file]            # Memory  - Read content of memory slot into filename
-	./lt-util <serialport> -m -e [slot]                    # Memory  - Erase content of memory slot
+	./lt-util <serialport> -r    <count> <file>            # Random  - Get 1-255 random bytes and store them into file
+	./lt-util <serialport> -e -i <slot>  <file>            # ECC key - Install private key from keypair.bin into a given slot
+	./lt-util <serialport> -e -g <slot>                    # ECC key - Generate private key in a given slot
+	./lt-util <serialport> -e -d <slot>  <file>            # ECC key - Download public key from given slot into file
+	./lt-util <serialport> -e -c <slot>                    # ECC key - Clear given ECC slot
+	./lt-util <serialport> -e -s <slot>  <file1> <file2>   # ECC key - Sign content of file1 (max size is 4095B) with key from a given slot and store resulting signature into file2
+	./lt-util <serialport> -m -s <slot>  <file>            # Memory  - Store content of filename (max size is 444B)  into memory slot
+	./lt-util <serialport> -m -r <slot>  <file>            # Memory  - Read content of memory slot (max size is 444B) into filename
+	./lt-util <serialport> -m -e <slot>                    # Memory  - Erase content of memory slot
+
+	 All commands return 0 if success, otherwise 1
+
 
 ```
+
+In case of problems with accessing serialport, make sure that your user is a member of `dialout` group. On usual linux distributions you can do it like this:
+
+```
+sudo adduser YOUR_USER dialout
+```
+
+Don't forget log out and log in afterwards.
 
 
 # Raspberry Pi shield (uses hw SPI)
