@@ -40,7 +40,7 @@ Executing compiled lt-util like this:
 ./lt-util
 ```
 
-Epected output:
+Expected output:
 ```bash
 
 Usage:
