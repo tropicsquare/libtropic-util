@@ -21,12 +21,16 @@
  */
 // Default factory pairing keys
 int8_t pkey_index_0 =  PAIRING_KEY_SLOT_INDEX_0;
+#if USB_DONGLE_TS1302
 // Engineering samples 02 keys
-//uint8_t sh0priv[] = {0x28,0x3F,0x5A,0x0F,0xFC,0x41,0xCF,0x50,0x98,0xA8,0xE1,0x7D,0xB6,0x37,0x2C,0x3C,0xAA,0xD1,0xEE,0xEE,0xDF,0x0F,0x75,0xBC,0x3F,0xBF,0xCD,0x9C,0xAB,0x3D,0xE9,0x72};
-//uint8_t sh0pub[]  = {0xF9,0x75,0xEB,0x3C,0x2F,0xD7,0x90,0xC9,0x6F,0x29,0x4F,0x15,0x57,0xA5,0x03,0x17,0x80,0xC9,0xAA,0xFA,0x14,0x0D,0xA2,0x8F,0x55,0xE7,0x51,0x57,0x37,0xB2,0x50,0x2C};
+uint8_t sh0priv[] = {0x28,0x3F,0x5A,0x0F,0xFC,0x41,0xCF,0x50,0x98,0xA8,0xE1,0x7D,0xB6,0x37,0x2C,0x3C,0xAA,0xD1,0xEE,0xEE,0xDF,0x0F,0x75,0xBC,0x3F,0xBF,0xCD,0x9C,0xAB,0x3D,0xE9,0x72};
+uint8_t sh0pub[]  = {0xF9,0x75,0xEB,0x3C,0x2F,0xD7,0x90,0xC9,0x6F,0x29,0x4F,0x15,0x57,0xA5,0x03,0x17,0x80,0xC9,0xAA,0xFA,0x14,0x0D,0xA2,0x8F,0x55,0xE7,0x51,0x57,0x37,0xB2,0x50,0x2C};
+#endif
+#if (USB_DONGLE_TS1301 || HW_SPI)
 // Engineering samples 01 keys:
 uint8_t sh0priv[] = {0xd0,0x99,0x92,0xb1,0xf1,0x7a,0xbc,0x4d,0xb9,0x37,0x17,0x68,0xa2,0x7d,0xa0,0x5b,0x18,0xfa,0xb8,0x56,0x13,0xa7,0x84,0x2c,0xa6,0x4c,0x79,0x10,0xf2,0x2e,0x71,0x6b};
 uint8_t sh0pub[]  = {0xe7,0xf7,0x35,0xba,0x19,0xa3,0x3f,0xd6,0x73,0x23,0xab,0x37,0x26,0x2d,0xe5,0x36,0x08,0xca,0x57,0x85,0x76,0x53,0x43,0x52,0xe1,0x8f,0x64,0xe6,0x13,0xd3,0x8d,0x54};
+#endif
 //Model keys:
 //uint8_t sh0priv[] = {0xf0,0xc4,0xaa,0x04,0x8f,0x00,0x13,0xa0,0x96,0x84,0xdf,0x05,0xe8,0xa2,0x2e,0xf7,0x21,0x38,0x98,0x28,0x2b,0xa9,0x43,0x12,0xf3,0x13,0xdf,0x2d,0xce,0x8d,0x41,0x64};
 //uint8_t sh0pub[]  = {0x84,0x2f,0xe3,0x21,0xa8,0x24,0x74,0x08,0x37,0x37,0xff,0x2b,0x9b,0x88,0xa2,0xaf,0x42,0x44,0x2d,0xb0,0xd8,0xaa,0xcc,0x6d,0xc6,0x9e,0x99,0x53,0x33,0x44,0xb2,0x46};
@@ -45,18 +49,18 @@ uint8_t sh0pub[]  = {0xe7,0xf7,0x35,0xba,0x19,0xa3,0x3f,0xd6,0x73,0x23,0xab,0x37
 #define MEM_READ     "-r"
 #define MEM_ERASE    "-e"
 
-#ifdef USB_DONGLE
+#if (USB_DONGLE_TS1301 || USB_DONGLE_TS1302)
 void print_usage(void) {
     printf("\r\nUsage (first parameter is serialport with usb dongle, update it if needed):\r\n\n"
-"\t./lt-util /dev/ttyACM0 "RNG"    [count] [file]            # Random  - Get 1-255 random bytes and store them into file\r\n"
-"\t./lt-util /dev/ttyACM0 "ECC" "  ECC_INSTALL" [slot]  [file]            # ECC key - Install private key from keypair.bin into a given slot\r\n"
-"\t./lt-util /dev/ttyACM0 "ECC" " ECC_GENERATE" [slot]                    # ECC key - Generate private key in a given slot\r\n"
-"\t./lt-util /dev/ttyACM0 "ECC" " ECC_DOWNLOAD" [slot]  [file]            # ECC key - Download public key from given slot into file\r\n"
-"\t./lt-util /dev/ttyACM0 "ECC" " ECC_CLEAR" [slot]                    # ECC key - Clear given ECC slot\r\n"
-"\t./lt-util /dev/ttyACM0 "ECC" " ECC_SIGN" [slot]  [file1] [file2]   # ECC key - Sign content of file1 (max size is 4095B) with key from a given slot and store resulting signature into file2\r\n"
-"\t./lt-util /dev/ttyACM0 "MEM" " MEM_STORE" [slot]  [file]            # Memory  - Store content of filename (max size is 444B)  into memory slot\r\n"
-"\t./lt-util /dev/ttyACM0 "MEM" " MEM_READ" [slot]  [file]            # Memory  - Read content of memory slot (max size is 444B) into filename\r\n"
-"\t./lt-util /dev/ttyACM0 "MEM" " MEM_ERASE" [slot]                    # Memory  - Erase content of memory slot\r\n\n"
+"\t./lt-util /dev/ttyACM0 "RNG"    <count> <file>            # Random  - Get 1-255 random bytes and store them into file\r\n"
+"\t./lt-util /dev/ttyACM0 "ECC" "  ECC_INSTALL" <slot>  <file>            # ECC key - Install private key from keypair.bin into a given slot\r\n"
+"\t./lt-util /dev/ttyACM0 "ECC" " ECC_GENERATE" <slot>                    # ECC key - Generate private key in a given slot\r\n"
+"\t./lt-util /dev/ttyACM0 "ECC" " ECC_DOWNLOAD" <slot>  <file>            # ECC key - Download public key from given slot into file\r\n"
+"\t./lt-util /dev/ttyACM0 "ECC" " ECC_CLEAR" <slot>                    # ECC key - Clear given ECC slot\r\n"
+"\t./lt-util /dev/ttyACM0 "ECC" " ECC_SIGN" <slot>  <file1> <file2>   # ECC key - Sign content of file1 (max size is 4095B) with key from a given slot and store resulting signature into file2\r\n"
+"\t./lt-util /dev/ttyACM0 "MEM" " MEM_STORE" <slot>  <file>            # Memory  - Store content of filename (max size is 444B)  into memory slot\r\n"
+"\t./lt-util /dev/ttyACM0 "MEM" " MEM_READ" <slot>  <file>            # Memory  - Read content of memory slot (max size is 444B) into filename\r\n"
+"\t./lt-util /dev/ttyACM0 "MEM" " MEM_ERASE" <slot>                    # Memory  - Erase content of memory slot\r\n\n"
 "\t All commands return 0 if success, otherwise 1\r\n\n");
 }
 #endif
@@ -64,15 +68,15 @@ void print_usage(void) {
 
 void print_usage(void) {
     printf("\r\nUsage:\r\n\n"
-"\t./lt-util "RNG"    [count] [file]            # Random  - Get 1-255 random bytes and store them into file\r\n"
-"\t./lt-util "ECC" "  ECC_INSTALL" [slot]  [file]            # ECC key - Install private key from keypair.bin into a given slot\r\n"
-"\t./lt-util "ECC" " ECC_GENERATE" [slot]                    # ECC key - Generate private key in a given slot\r\n"
-"\t./lt-util "ECC" " ECC_DOWNLOAD" [slot]  [file]            # ECC key - Download public key from given slot into file\r\n"
-"\t./lt-util "ECC" " ECC_CLEAR" [slot]                    # ECC key - Clear given ECC slot\r\n"
-"\t./lt-util "ECC" " ECC_SIGN" [slot]  [file1] [file2]   # ECC key - Sign content of file1 (max size is 4095B) with key from a given slot and store resulting signature into file2\r\n"
-"\t./lt-util "MEM" " MEM_STORE" [slot]  [file]            # Memory  - Store content of filename (max size is 444B)  into memory slot\r\n"
-"\t./lt-util "MEM" " MEM_READ" [slot]  [file]            # Memory  - Read content of memory slot (max size is 444B) into filename\r\n"
-"\t./lt-util "MEM" " MEM_ERASE" [slot]                    # Memory  - Erase content of memory slot\r\n\n"
+"\t./lt-util "RNG"    <count> <file>            # Random  - Get 1-255 random bytes and store them into file\r\n"
+"\t./lt-util "ECC" "  ECC_INSTALL" <slot>  <file>            # ECC key - Install private key from keypair.bin into a given slot\r\n"
+"\t./lt-util "ECC" " ECC_GENERATE" <slot>                    # ECC key - Generate private key in a given slot\r\n"
+"\t./lt-util "ECC" " ECC_DOWNLOAD" <slot>  <file>            # ECC key - Download public key from given slot into file\r\n"
+"\t./lt-util "ECC" " ECC_CLEAR" <slot>                    # ECC key - Clear given ECC slot\r\n"
+"\t./lt-util "ECC" " ECC_SIGN" <slot>  <file1> <file2>   # ECC key - Sign content of file1 (max size is 4095B) with key from a given slot and store resulting signature into file2\r\n"
+"\t./lt-util "MEM" " MEM_STORE" <slot>  <file>            # Memory  - Store content of filename (max size is 444B)  into memory slot\r\n"
+"\t./lt-util "MEM" " MEM_READ" <slot>  <file>            # Memory  - Read content of memory slot (max size is 444B) into filename\r\n"
+"\t./lt-util "MEM" " MEM_ERASE" <slot>                    # Memory  - Erase content of memory slot\r\n\n"
 "\t All commands return 0 if success, otherwise 1\r\n\n");
 }
 #endif
@@ -599,7 +603,7 @@ int process_mem_erase(lt_handle_t *h, char *slot_in)
     return 0;
 }
 
-#ifdef USB_DONGLE
+#if (USB_DONGLE_TS1301 || USB_DONGLE_TS1302)
 int main(int argc, char *argv[]) {
     //printf ("argc %d   %s  %s  %s  %s \r\n", argc, argv[0], argv[1], argv[2], argv[3]);
     if ((argc == 1)) {

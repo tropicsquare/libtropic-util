@@ -12,7 +12,8 @@ cmake_minimum_required(VERSION 3.21.0)
 set(PATH_LIBTROPIC "libtropic/")
 
 option(HW_SPI      "Compile for hw spi on rpi" OFF)
-option(USB_DONGLE  "Compile for usb dongle" OFF)
+option(USB_DONGLE_TS1301  "Compile for TS1301 USB dongle" OFF)
+option(USB_DONGLE_TS1302  "Compile for TS1302 USB dongle" OFF)
 
 
 ###########################################################################
@@ -35,10 +36,14 @@ project(libtropic_unix_spi_example
 
 if(HW_SPI)
     add_executable(lt-util src/main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_raspberrypi_wiringpi.c) 
+    ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_raspberrypi_wiringpi.c)
 endif()
 
-if(USB_DONGLE)
+if(USB_DONGLE_TS1301)
+    add_executable(lt-util src/main.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_unix_usb_dongle.c)
+endif()
+if(USB_DONGLE_TS1302)
     add_executable(lt-util src/main.c
         ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_unix_usb_dongle.c)
 endif()
@@ -63,8 +68,11 @@ target_compile_options(tropic PRIVATE -Wall)
 target_compile_options(tropic PRIVATE -ffunction-sections -fdata-sections)
 target_compile_options(tropic PRIVATE -Wno-implicit-function-declaration)
 
-if(USB_DONGLE)
-    target_compile_definitions(lt-util PRIVATE USB_DONGLE)
+if(USB_DONGLE_TS1301)
+    target_compile_definitions(lt-util PRIVATE USB_DONGLE_TS1301)
+endif()
+if(USB_DONGLE_TS1302)
+    target_compile_definitions(lt-util PRIVATE USB_DONGLE_TS1302)
 endif()
 
 if(HW_SPI)
@@ -80,7 +88,10 @@ endif()
 
 target_link_options(lt-util PRIVATE -Wl,--gc-sections)
 
-if(USB_DONGLE)
+if(USB_DONGLE_TS1301)
+    target_link_libraries(lt-util PRIVATE tropic)
+endif()
+if(USB_DONGLE_TS1302)
     target_link_libraries(lt-util PRIVATE tropic)
 endif()
 

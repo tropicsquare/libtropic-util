@@ -27,7 +27,7 @@ Specify them by uncommenting/commenting line 25, 26 or 28, 29 in `src/main.c.`, 
 One-liner for compiling:
 
 ```
-mkdir build &&  cd build && cmake -DUSB_DONGLE=1 .. && make && cd ../
+mkdir build &&  cd build && cmake -DUSB_DONGLE_TS1302=1 .. && make && cd ../
 ```
 
 Binary will be produced in `build/` folder.
