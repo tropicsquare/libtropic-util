@@ -21,8 +21,12 @@ Compilation differs based on what hardware are you compiling for. At the moment 
 
 # USB Dongle with TROPIC01 chip
 
-One-liner for compiling:
+First get into the folder of cloned repository:
+```
+cd <path_to_cloned_libtropic-util_repository>
+```
 
+One-liner for compiling:
 ```
 mkdir build &&  cd build && cmake -DUSB_DONGLE_TS1302=1 .. && make && cd ../
 ```
@@ -142,8 +146,12 @@ System details:
 
 ## Compile
 
-One-liner for compiling (tested on rpi3 and rpi4):
+First get into the folder of cloned repository:
+```
+cd <path_to_cloned_libtropic-util_repository>
+```
 
+Then use this one-line comand for compiling (tested on rpi3 and rpi4):
 ```
 mkdir build &&  cd build && cmake -DHW_SPI=1 .. && make && cd ../
 ```
