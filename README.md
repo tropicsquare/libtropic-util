@@ -9,7 +9,7 @@ Contributors, please follow [guidelines](https://github.com/tropicsquare/libtrop
 
 Use following command to clone repository:
 ```
-$ git clone --recurse-submodules https://github.com/tropicsquare/libtropic-util
+git clone --recurse-submodules https://github.com/tropicsquare/libtropic-util
 ```
 
 and follow building instruction based on what hardware you have.
@@ -31,8 +31,13 @@ Binary will be produced in `build/` folder.
 
 When compiled for USB dongle, interface allows to specify serialport.
 
+Executing compiled lt-util like this:
+```bash
+./lt-util
 ```
-$ ./lt-util
+
+Epected output:
+```bash
 
 Usage:
 Usage (first parameter is serialport with usb dongle, update it if needed):
@@ -105,15 +110,19 @@ sudo raspi-config  # then go into Interfaces and enable SPI
 Install wiringPi from released package
 
 ```bash
-$ wget https://github.com/WiringPi/WiringPi/releases/download/3.14/wiringpi_3.14_arm64.deb
+wget https://github.com/WiringPi/WiringPi/releases/download/3.14/wiringpi_3.14_arm64.deb
 
-$ sudo apt install ./wiringpi_3.14_arm64.deb
+sudo apt install ./wiringpi_3.14_arm64.deb
 ```
 
 Check out installed version:
 
 ```bash
-$ gpio -v
+gpio -v
+```
+
+Expected output:
+```
 gpio version: 3.14
 Copyright (c) 2012-2025 Gordon Henderson and contributors
 This is free software with ABSOLUTELY NO WARRANTY.
@@ -141,7 +150,11 @@ mkdir build &&  cd build && cmake -DHW_SPI=1 .. && make && cd ../
 Binary will be produced in `build/` folder. When compiled with `HW-SPI=1`, note that serialport parameter is not available.
 
 ```
- $ ./build/lt-util 
+ ./build/lt-util
+```
+
+Expected output:
+```
 
 Usage:
 
@@ -159,4 +172,4 @@ Usage:
 
 # Test
 
-Check out `test` folder, there is a README.md with steps how to test if everything works properly. There is a testing script for each compiled version.
+Check out [test](https://github.com/tropicsquare/libtropic-util/test/README.md) readme in `test/` folder, there are steps how to check if everything works properly.
