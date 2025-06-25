@@ -55,7 +55,7 @@ endif()
 ###########################################################################
 
 set(LT_UTILS ON)
-#set(LT_ADD_EXAMPLES ON)
+#set(LT_BUILD_EXAMPLES ON)
 
 # Use trezor crypto as a source of backend cryptography code
 set(LT_USE_TREZOR_CRYPTO ON)
