@@ -23,8 +23,10 @@
     // When uncommented, debug messages will contain line numbers
     //#define LT_LOG(f_, ...) printf("LINE %d;\t" f_ "\r\n", __LINE__, ##__VA_ARGS__)
     // When uncommented, debug messages will be printed out
-    #define LT_LOG(f_, ...) printf(f_ "\r\n", ##__VA_ARGS__)
-    #define LT_LOG_ERROR(f_, ...) printf("ERROR: "f_ "\r\n", ##__VA_ARGS__)
+    #define LT_LOG(f_, ...) printf(f_ , ##__VA_ARGS__)
+    #define LT_LOG_CMD(f_, ...) printf("\r\n[CMD] " f_ "\r\n", ##__VA_ARGS__)
+    #define LT_LOG_INFO(f_, ...) printf("  [info] "f_ "\r\n", ##__VA_ARGS__)
+    #define LT_LOG_ERROR(f_, ...) printf("  [err]  " f_ "\r\n", ##__VA_ARGS__)
 #else
     #define LT_LOG(...)
     #define LT_LOG_ERROR(...)
@@ -60,7 +62,13 @@ int8_t pkey_index_0 =  PAIRING_KEY_SLOT_INDEX_0;
 // In rare situation (very old devkit) you might need to define ENGINEERING_SAMPLES_01 here
 #define ENGINEERING_SAMPLES_02
 #endif
-
+//#if defined(XXX)
+//// code for XXX
+//#elif defined(YYY)
+//// code for YYY
+//#else
+//// code for ZZZ
+//#endif
 #ifdef ENGINEERING_SAMPLES_01
 // Engineering samples 01 keys:
 #pragma message("Compiling lt-util with ENGINEERING_SAMPLES_01 keys, please check if they are correct for your device")
@@ -123,10 +131,10 @@ void print_usage(void) {
 
 int process_rng_get(lt_handle_t *h, char *count_in, char *file) {
     if(!count_in || !file) {
-        LT_LOG_ERROR("Error, NULL parameters process_rng_get()\r\n");
+        LT_LOG_ERROR("Error, NULL parameters process_rng_get()");
         return 1;
     } else {
-        LT_LOG("Processing lt-util "RNG" %s %s\r\n", count_in, file);
+        LT_LOG_CMD("lt-util "RNG" %s %s", count_in, file);
     }
 
     // Parsing count number
@@ -144,6 +152,7 @@ int process_rng_get(lt_handle_t *h, char *count_in, char *file) {
         LT_LOG_ERROR("Error opening file %s", file);
         return 1;
     }
+    LT_LOG_INFO("File \"%s\" opened for writing", file);
 
     // Get random bytes from TROPIC01 into bytes[] buffer
     uint8_t bytes[RANDOM_VALUE_GET_LEN_MAX] = {0};
@@ -152,30 +161,41 @@ int process_rng_get(lt_handle_t *h, char *count_in, char *file) {
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error lt_init(): %s", lt_ret_verbose(ret));
         return ret;
+    } else {
+        LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
+
     ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return ret;
+    } else {
+        LT_LOG_INFO("Secure channel established: %s", lt_ret_verbose(ret));
     }
+
     ret = lt_random_get(h, bytes, count);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return ret;
+    } else {
+        LT_LOG_INFO("lt_random_get(): %s", lt_ret_verbose(ret));
     }
 
     // Store content of bytes[] buffer into file
     size_t written = fwrite(bytes, sizeof(uint8_t), count, fp);
     if(written !=count) {
-        LT_LOG_ERROR("Error writing into file, %zu written\n", written);
+        LT_LOG_ERROR("Error writing into file, %zu written", written);
         fclose(fp);
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("Wrote %zu bytes into file \"%s\"", written, file);
     }
 
     fclose(fp);
+
     lt_deinit(h);
 
     return 0;
@@ -183,10 +203,10 @@ int process_rng_get(lt_handle_t *h, char *count_in, char *file) {
 
 int process_ecc_install(lt_handle_t *h, char *slot_in, char *file) {
     if(!slot_in || !file) {
-        LT_LOG_ERROR("Error, NULL parameters process_rng_get()\r\n");
+        LT_LOG_ERROR("Error, NULL parameters process_rng_get()");
         return 1;
     } else {
-        LT_LOG("Processing lt-util "ECC" "ECC_INSTALL" %s %s\r\n", slot_in, file);
+        LT_LOG_CMD("lt-util "ECC" "ECC_INSTALL" %s %s", slot_in, file);
     }
 
     // Parsing slot number
@@ -198,6 +218,7 @@ int process_ecc_install(lt_handle_t *h, char *slot_in, char *file) {
         LT_LOG_ERROR("Error, wrong slot number ");
         return 1;
     }
+    LT_LOG_INFO("Slot number: %ld is valid", slot);
 
     // Opening file from which first 32B will be taken as private key
     FILE *fp = fopen(file, "rb");
@@ -205,11 +226,12 @@ int process_ecc_install(lt_handle_t *h, char *slot_in, char *file) {
         LT_LOG_ERROR("Error process_ecc_install() opening fileE");
         return 1;
     }
+    LT_LOG_INFO("File \"%s\" opened for reading", file);
 
     // Read keypair from file into keypair[] buffer
     uint8_t keypair[64] = {0};
     size_t read = fread(keypair, sizeof(uint8_t), 64, fp);
-    LT_LOG("Number of elements read: %zu\n", read);
+    LT_LOG_INFO("Number of bytes read: %zu", read);
     fclose(fp);
 
     // Install first 32B from keypair[] into ecc slot priv key
@@ -218,32 +240,38 @@ int process_ecc_install(lt_handle_t *h, char *slot_in, char *file) {
         LT_LOG_ERROR("Error lt_init(): %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
     ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("Secure channel established: %s", lt_ret_verbose(ret));
     }
     ret = lt_ecc_key_store(h, slot, CURVE_ED25519, keypair); // Only first 32B will be taken
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("lt_ecc_key_store(): %s", lt_ret_verbose(ret));
     }
 
     lt_deinit(h);
 
-    LT_LOG("OK\r\n");
+    LT_LOG("OK");
     return 0;
 }
 
 int process_ecc_generate(lt_handle_t *h, char *slot_in) {
     if(!slot_in) {
-        LT_LOG_ERROR("Error, NULL parameters process_ecc_clear()\r\n");
+        LT_LOG_ERROR("Error, NULL parameters process_ecc_clear()");
         return 1;
     } else {
-        LT_LOG("Processing lt-util "ECC" "ECC_GENERATE" %s\r\n", slot_in);
+        LT_LOG_CMD("lt-util "ECC" "ECC_GENERATE" %s", slot_in);
     }
 
      // Parsing slot number
@@ -254,6 +282,8 @@ int process_ecc_generate(lt_handle_t *h, char *slot_in) {
     if((slot < 0) || (slot > 31)) {
         LT_LOG_ERROR("Error, wrong slot number ");
         return 1;
+    } else {
+        LT_LOG_INFO("Slot number: %ld is valid", slot);
     }
 
     // Generate EdDSA  private key in a given slot
@@ -261,12 +291,16 @@ int process_ecc_generate(lt_handle_t *h, char *slot_in) {
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error lt_init(): %s", lt_ret_verbose(ret));
         return ret;
+    } else {
+        LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
     ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return ret;
+    } else {
+        LT_LOG_INFO("Secure channel established: %s", lt_ret_verbose(ret));
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
@@ -275,6 +309,8 @@ int process_ecc_generate(lt_handle_t *h, char *slot_in) {
         LT_LOG_ERROR("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return ret;
+    } else {
+        LT_LOG_INFO("lt_ecc_key_generate() : %s", lt_ret_verbose(ret));
     }
 
     lt_deinit(h);
@@ -285,10 +321,10 @@ int process_ecc_generate(lt_handle_t *h, char *slot_in) {
 int process_ecc_download(lt_handle_t *h, char *slot_in, char *file) {
 
     if(!slot_in || !file) {
-        LT_LOG_ERROR("Error, NULL parameters process_rng_get()\r\n");
+        LT_LOG_ERROR("Error, NULL parameters process_rng_get()");
         return 1;
     } else {
-        LT_LOG("Processing lt-util "ECC" "ECC_DOWNLOAD" %s %s\r\n", slot_in, file);
+        LT_LOG_CMD("lt-util "ECC" "ECC_DOWNLOAD" %s %s", slot_in, file);
     }
 
     // Parsing slot number
@@ -299,6 +335,8 @@ int process_ecc_download(lt_handle_t *h, char *slot_in, char *file) {
     if((slot < 0) || (slot > 31)) {
         LT_LOG_ERROR("Error, wrong slot number ");
         return 1;
+    } else {
+        LT_LOG_INFO("Slot number: %ld is valid", slot);
     }
 
     // Opening file
@@ -306,6 +344,8 @@ int process_ecc_download(lt_handle_t *h, char *slot_in, char *file) {
     if (fp == NULL) {
         LT_LOG_ERROR("Error process_ecc_download() opening file");
         return 1;
+    } else {
+        LT_LOG_INFO("File \"%s\" opened for writing", file);
     }
 
     // Get random bytes from TROPIC01
@@ -314,12 +354,16 @@ int process_ecc_download(lt_handle_t *h, char *slot_in, char *file) {
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error lt_init(): %s", lt_ret_verbose(ret));
         return 1;
+    } else {
+        LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
     ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("Secure channel established: %s", lt_ret_verbose(ret));
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
@@ -328,10 +372,12 @@ int process_ecc_download(lt_handle_t *h, char *slot_in, char *file) {
         LT_LOG_ERROR("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("lt_ecc_key_read(): %s", lt_ret_verbose(ret));
     }
 
     size_t written = fwrite(pubkey, sizeof(uint8_t), 32, fp);
-    LT_LOG("Number of elements written: %zu\n", written);
+    LT_LOG_INFO("Number of elements written: %zu", written);
 
     fclose(fp);
 
@@ -342,10 +388,10 @@ int process_ecc_download(lt_handle_t *h, char *slot_in, char *file) {
 
 int process_ecc_clear(lt_handle_t *h, char *slot_in) {
     if(!slot_in) {
-        LT_LOG_ERROR("Error, NULL parameters process_ecc_clear()\r\n");
+        LT_LOG_ERROR("Error, NULL parameters process_ecc_clear()");
         return 1;
     } else {
-        LT_LOG("Processing lt-util "ECC" "ECC_CLEAR" %s\r\n", slot_in);
+        LT_LOG_CMD("lt-util "ECC" "ECC_CLEAR" %s", slot_in);
     }
 
      // Parsing slot number
@@ -356,6 +402,8 @@ int process_ecc_clear(lt_handle_t *h, char *slot_in) {
     if((slot < 0) || (slot > 31)) {
         LT_LOG_ERROR("Error, wrong slot number ");
         return 1;
+    } else {
+        LT_LOG_INFO("Slot number: %ld is valid", slot);
     }
 
     // Clear given slot in TROPIC01
@@ -363,12 +411,16 @@ int process_ecc_clear(lt_handle_t *h, char *slot_in) {
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error lt_init(): %s", lt_ret_verbose(ret));
         return 1;
+    } else {
+        LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
     ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("Secure channel established: %s", lt_ret_verbose(ret));
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
@@ -377,6 +429,8 @@ int process_ecc_clear(lt_handle_t *h, char *slot_in) {
         LT_LOG_ERROR("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("lt_ecc_key_erase(): %s", lt_ret_verbose(ret));
     }
 
     lt_deinit(h);
@@ -386,10 +440,10 @@ int process_ecc_clear(lt_handle_t *h, char *slot_in) {
 
 int process_ecc_sign(lt_handle_t *h, char *slot_in, char *msg_file_in, char* signature_file_out) {
     if(!slot_in || !msg_file_in || !signature_file_out) {
-        LT_LOG_ERROR("Error, NULL parameters process_rng_get()\r\n");
+        LT_LOG_ERROR("Error, NULL parameters process_rng_get()");
         return 1;
     } else {
-        LT_LOG("Processing lt-util "ECC" "ECC_SIGN" %s %s %s\r\n", slot_in, msg_file_in, signature_file_out);
+        LT_LOG_CMD("lt-util "ECC" "ECC_SIGN" %s %s %s", slot_in, msg_file_in, signature_file_out);
     }
 
     // Parsing slot number
@@ -400,6 +454,8 @@ int process_ecc_sign(lt_handle_t *h, char *slot_in, char *msg_file_in, char* sig
     if((slot < 0) || (slot > 31)) {
         LT_LOG_ERROR("Error, wrong slot number ");
         return 1;
+    } else {
+        LT_LOG_INFO("Slot number: %ld is valid", slot);
     }
 
     // Opening file from which a hash will be read
@@ -407,6 +463,8 @@ int process_ecc_sign(lt_handle_t *h, char *slot_in, char *msg_file_in, char* sig
     if (msg_fp == NULL) {
         LT_LOG_ERROR("Error opening file %s", msg_file_in);
         return 1;
+    } else {
+        LT_LOG_INFO("File \"%s\" opened for reading", msg_file_in);
     }
 
     fseek(msg_fp, 0L, SEEK_END);
@@ -418,12 +476,14 @@ int process_ecc_sign(lt_handle_t *h, char *slot_in, char *msg_file_in, char* sig
     if (fp_sig == NULL) {
         LT_LOG_ERROR("Error opening file %s", signature_file_out);
         return 1;
+    } else {
+        LT_LOG_INFO("File \"%s\" opened for writing", signature_file_out);
     }
 
     // Read hash from file
     uint8_t msg[4095] = {0};
     size_t read = fread(msg, sizeof(uint8_t), msg_size, msg_fp);
-    LT_LOG("Number of elements read: %zu\n", read);
+    LT_LOG_INFO("Number of bytes read: %zu", read);
     fclose(msg_fp);
 
     // Sign hash in TROPIC01
@@ -431,12 +491,16 @@ int process_ecc_sign(lt_handle_t *h, char *slot_in, char *msg_file_in, char* sig
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error lt_init(): %s", lt_ret_verbose(ret));
         return 1;
+    } else {
+        LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
     ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("Secure channel established: %s", lt_ret_verbose(ret));
     }
     uint8_t signature_rs[64] = {0};
     ret = lt_ecc_eddsa_sign(h, (uint8_t)slot, msg, msg_size, signature_rs, 64);
@@ -444,15 +508,19 @@ int process_ecc_sign(lt_handle_t *h, char *slot_in, char *msg_file_in, char* sig
         LT_LOG_ERROR("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("lt_ecc_eddsa_sign(): %s", lt_ret_verbose(ret));
     }
 
     // Write signature into file
     size_t written = fwrite(signature_rs, sizeof(uint8_t), 64, fp_sig);
     if(written != 64) {
-        LT_LOG_ERROR("Error writing into file, written: %zu\n", written);
+        LT_LOG_ERROR("Error writing into file, written: %zu", written);
         fclose(fp_sig);
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("Wrote %zu bytes into file \"%s\"", written, signature_file_out);
     }
 
     fclose(fp_sig);
@@ -464,10 +532,10 @@ int process_ecc_sign(lt_handle_t *h, char *slot_in, char *msg_file_in, char* sig
 
 int process_mem_store(lt_handle_t *h, char *slot_in, char *file) {
     if(!slot_in || !file) {
-        LT_LOG_ERROR("Error, NULL parameters process_mem_store()\r\n");
+        LT_LOG_ERROR("Error, NULL parameters process_mem_store()");
         return 1;
     } else {
-        LT_LOG("Processing lt-util "MEM" "MEM_STORE" %s %s\r\n", slot_in, file);
+        LT_LOG_CMD("lt-util "MEM" "MEM_STORE" %s %s", slot_in, file);
     }
 
     // Parsing slot number
@@ -478,6 +546,8 @@ int process_mem_store(lt_handle_t *h, char *slot_in, char *file) {
     if((slot < 0) || (slot > 511)) {
         LT_LOG_ERROR("Error, wrong slot number ");
         return 1;
+    } else {
+        LT_LOG_INFO("Slot number: %ld is valid", slot);
     }
 
     // Opening file
@@ -485,6 +555,8 @@ int process_mem_store(lt_handle_t *h, char *slot_in, char *file) {
     if (fp == NULL) {
         LT_LOG_ERROR("Error process_ecc_download() opening file");
         return 1;
+    } else {
+        LT_LOG_INFO("File \"%s\" opened for reading", file);
     }
 
     fseek(fp, 0L, SEEK_END);
@@ -492,18 +564,22 @@ int process_mem_store(lt_handle_t *h, char *slot_in, char *file) {
     rewind(fp);
 
     if((sz < 1) || (sz > 444)) {
-        LT_LOG_ERROR("Error, size of file to store must be between 1 - 444 B\r\n");
+        LT_LOG_ERROR("Error, size of file to store must be between 1 - 444 B");
         return 1;
+    } else {
+        LT_LOG_INFO("File size: %ld is valid", sz);
     }
 
     // Read keypair from file into keypair[] buffer
     uint8_t mem_content[444] = {0};
     size_t read = fread(mem_content, sizeof(uint8_t), sz, fp);
     if(read != sz) {
-        LT_LOG_ERROR("Error when reading a file\r\n");
+        LT_LOG_ERROR("Error when reading a file");
         return 1;
+    } else {
+        LT_LOG_INFO("Read %zu bytes from file", read);
     }
-    LT_LOG("Number of elements read: %zu\n", read);
+
     fclose(fp);
 
     // Store the content into r memory slot
@@ -511,12 +587,16 @@ int process_mem_store(lt_handle_t *h, char *slot_in, char *file) {
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error lt_init(): %s", lt_ret_verbose(ret));
         return 1;
+    } else {
+        LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
     ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("Secure channel established: %s", lt_ret_verbose(ret));
     }
 
     ret = lt_r_mem_data_write(h, (uint16_t)slot, mem_content,(uint16_t)sz);
@@ -524,6 +604,8 @@ int process_mem_store(lt_handle_t *h, char *slot_in, char *file) {
         LT_LOG_ERROR("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("lt_r_mem_data_write(): %s", lt_ret_verbose(ret));
     }
 
     lt_deinit(h);
@@ -534,10 +616,10 @@ int process_mem_store(lt_handle_t *h, char *slot_in, char *file) {
 
 int process_mem_read(lt_handle_t *h, char *slot_in, char *file) {
     if(!slot_in || !file) {
-        LT_LOG_ERROR("Error, NULL parameters process_mem_read()\r\n");
+        LT_LOG_ERROR("Error, NULL parameters process_mem_read()");
         return 1;
     } else {
-        LT_LOG("Processing lt-util "MEM" "MEM_READ" %s %s\r\n", slot_in, file);
+        LT_LOG_CMD("lt-util "MEM" "MEM_READ" %s %s", slot_in, file);
     }
 
     // Parsing slot number
@@ -548,6 +630,8 @@ int process_mem_read(lt_handle_t *h, char *slot_in, char *file) {
     if((slot < 0) || (slot > 511)) {
         LT_LOG_ERROR("Error, wrong slot number ");
         return 1;
+    } else {
+        LT_LOG_INFO("Slot number: %ld is valid", slot);
     }
 
     // Opening file
@@ -555,6 +639,8 @@ int process_mem_read(lt_handle_t *h, char *slot_in, char *file) {
     if (fp == NULL) {
         LT_LOG_ERROR("Error process_ecc_download() opening file");
         return 1;
+    } else {
+        LT_LOG_INFO("File \"%s\" opened for writing", file);
     }
 
     // Read keypair from file into keypair[] buffer
@@ -565,12 +651,16 @@ int process_mem_read(lt_handle_t *h, char *slot_in, char *file) {
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error lt_init(): %s", lt_ret_verbose(ret));
         return 1;
+    } else {
+        LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
     ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("Secure channel established: %s", lt_ret_verbose(ret));
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
@@ -579,16 +669,19 @@ int process_mem_read(lt_handle_t *h, char *slot_in, char *file) {
         LT_LOG_ERROR("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("lt_r_mem_data_read(): %s", lt_ret_verbose(ret));
     }
-
 
     // Store content of bytes[] buffer into file
     size_t written = fwrite(mem_content, sizeof(uint8_t), 32, fp);
     if(written != 32) {
-        LT_LOG_ERROR("Error writing into file, %zu written\n", written);
+        LT_LOG_ERROR("Error writing into file, %zu written", written);
         fclose(fp);
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("Wrote %zu bytes into file \"%s\"", written, file);
     }
 
     fclose(fp);
@@ -602,9 +695,9 @@ int process_mem_read(lt_handle_t *h, char *slot_in, char *file) {
 int process_mem_erase(lt_handle_t *h, char *slot_in)
 {
     if(!slot_in) {
-        LT_LOG_ERROR("Error, NULL parameters process_mem_erase()\r\n");
+        LT_LOG_ERROR("Error, NULL parameters process_mem_erase()");
     } else {
-        LT_LOG("Processing lt-util "MEM" "MEM_ERASE" %s\r\n", slot_in);
+        LT_LOG_CMD("lt-util "MEM" "MEM_ERASE" %s", slot_in);
     }
 
      // Parsing slot number
@@ -615,6 +708,8 @@ int process_mem_erase(lt_handle_t *h, char *slot_in)
     if((slot < 0) || (slot > 511)) {
         LT_LOG_ERROR("Error, wrong slot number ");
         return 1;
+    } else {
+        LT_LOG_INFO("Slot number: %ld is valid", slot);
     }
 
     // Clear given slot in TROPIC01
@@ -622,12 +717,16 @@ int process_mem_erase(lt_handle_t *h, char *slot_in)
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error lt_init(): %s", lt_ret_verbose(ret));
         return 1;
+    } else {
+        LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
     ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("Secure channel established: %s", lt_ret_verbose(ret));
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
@@ -636,6 +735,8 @@ int process_mem_erase(lt_handle_t *h, char *slot_in)
         LT_LOG_ERROR("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return 1;
+    } else {
+        LT_LOG_INFO("lt_r_mem_data_erase(): %s", lt_ret_verbose(ret));
     }
 
     lt_deinit(h);
@@ -643,9 +744,10 @@ int process_mem_erase(lt_handle_t *h, char *slot_in)
     return 0;
 }
 
+// When compiled for usb dongle, besides inputs used by TROPIC01, API also receives serialport string
 #if (USB_DONGLE_TS1301 || USB_DONGLE_TS1302)
 int main(int argc, char *argv[]) {
-    //LT_LOG("argc %d   %s  %s  %s  %s \r\n", argc, argv[0], argv[1], argv[2], argv[3]);
+    //LT_LOG("argc %d   %s  %s  %s  %s ", argc, argv[0], argv[1], argv[2], argv[3]);
     if ((argc == 1)) {
         print_usage();
         return 0;
@@ -699,10 +801,11 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    LT_LOG_ERROR("ERROR wrong parameters entered\r\n");
-    return 1;
+    LT_LOG_ERROR("ERROR wrong parameters entered");
+    return 2;
 }
 #endif
+// When compiled for usb dongle, besides inputs used by TROPIC01, API also receives SPI strings
 #ifdef HW_SPI
 int main(int argc, char *argv[]) {
     //LT_LOG ("argc %d   %s  %s  %s  %s \r\n", argc, argv[0], argv[1], argv[2], argv[3]);
