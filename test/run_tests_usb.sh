@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PATH_TO_BUILD="../build"
-UART_PORT="/dev/cu.usbmodem1b36004b37721"
+UART_PORT=${1:-/dev/ttyACM0}
 cd ${PATH_TO_BUILD}
 
 echo ""
