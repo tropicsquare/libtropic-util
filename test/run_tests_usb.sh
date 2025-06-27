@@ -1,47 +1,67 @@
 #!/bin/bash
 
+# WARNING: THIS IS A WORK IN PROGRESS
+
+# This script uses lt-util tool together with USB devkit and does following:
+# 1. Tests the random number generator (RNG) with various lengths.
+# 2. Erases ECC slot 0.
+# 3. Generates an EdDSA keypair in ECC slot 0.
+# 4. Signs a message five times using the generated privkey.
+# 5. Verifies each signature against the original message and public key.
+# 6. Prints the status of each command executed.
+
 PATH_TO_BUILD="../build"
 UART_PORT="/dev/ttyACM0"
 cd ${PATH_TO_BUILD}
 
-echo ""
-echo "[COMMAND] RNG test expected fails with invalid length:"
-./lt-util ${UART_PORT} -r -1 message; echo "  Status: " $?
-./lt-util ${UART_PORT}  -r 0 message; echo "  Status: " $?
-./lt-util ${UART_PORT}  -r 256 message; echo "  Status: " $?
-echo "[COMMAND] Get 32 random bytes and save as message:"
-./lt-util ${UART_PORT}  -r 32 message; echo "  Status: " $?
+
+LINE="---------------------------------------------------------------------------"
+#echo ""
+#echo "[COMMAND] RNG test expected fails with invalid length:"
+./lt-util ${UART_PORT} -r -1 message; echo "[<<] lt-util returned status: " $?
+echo ${LINE}
+./lt-util ${UART_PORT}  -r 0 message; echo "[<<] lt-util returned status: " $?
+echo ${LINE}
+./lt-util ${UART_PORT}  -r 256 message; echo "[<<] lt-util returned status: " $?
+echo ${LINE}
+
+#echo "[COMMAND] Get 32 random bytes and save as message:"
+./lt-util ${UART_PORT}  -r 32 message; echo "[<<] lt-util returned status: " $?
+echo ${LINE}
 #xxd -p ${PATH_TO_BUILD}/message | tr -d '\n' && echo ""
 
-echo "[COMMAND] Erase slot 0: "
-./lt-util ${UART_PORT}  -e -c 0; echo "  Status: " $?
-echo "[COMMAND] Generate EdDSA keypair there: "
-./lt-util ${UART_PORT}  -e -g 0; echo "  Status: " $?
-echo "[COMMAND] Get public key"
-./lt-util ${UART_PORT}  -e -d 0 public_key; echo "  Status: " $?
+#echo "[COMMAND] Erase slot 0: "
+./lt-util ${UART_PORT}  -e -c 0; echo "[<<] lt-util returned status: " $?
+echo ${LINE}
+#echo "[COMMAND] Generate EdDSA keypair there: "
+./lt-util ${UART_PORT}  -e -g 0; echo "[<<] lt-util returned status: " $?
+echo ${LINE}
+#echo "[COMMAND] Get public key"
+./lt-util ${UART_PORT}  -e -d 0 public_key; echo "[<<] lt-util returned status: " $?
+echo ${LINE}
 #xxd -p ${PATH_TO_BUILD}/public_key | tr -d '\n' && echo ""
 
-echo "[COMMAND] Sign message 5 times"
+#echo "[COMMAND] Sign message 5 times"
 # Now sign the message five times
-./lt-util ${UART_PORT}  -e -s 0 message signature1; echo "  Status: " $?
-#xxd -p ${PATH_TO_BUILD}/signature1 | tr -d '\n' && echo ""
-./lt-util ${UART_PORT}  -e -s 0 message signature2; echo "  Status: " $?
-#xxd -p ${PATH_TO_BUILD}/signature2 | tr -d '\n' && echo ""
-./lt-util ${UART_PORT}  -e -s 0 message signature3; echo "  Status: " $?
-#xxd -p ${PATH_TO_BUILD}/signature3 | tr -d '\n' && echo ""
-./lt-util ${UART_PORT}  -e -s 0 message signature4; echo "  Status: " $?
-#xxd -p ${PATH_TO_BUILD}/signature4 | tr -d '\n' && echo ""
-./lt-util ${UART_PORT}  -e -s 0 message signature5; echo "  Status: " $?
-#xxd -p ${PATH_TO_BUILD}/signature5 | tr -d '\n' && echo ""
-
-echo ""
-echo "[INFO] Verify five signatures with python cryptography library"
+./lt-util ${UART_PORT}  -e -s 0 message signature1; echo "[<<] lt-util returned status: " $?
 ../test/verify_signature.py --message message --public-key public_key --signature signature1
+echo ${LINE}
+#xxd -p ${PATH_TO_BUILD}/signature1 | tr -d '\n' && echo ""
+./lt-util ${UART_PORT}  -e -s 0 message signature2; echo "[<<] lt-util returned status: " $?
 ../test/verify_signature.py --message message --public-key public_key --signature signature2
+echo ${LINE}
+#xxd -p ${PATH_TO_BUILD}/signature2 | tr -d '\n' && echo ""
+./lt-util ${UART_PORT}  -e -s 0 message signature3; echo "[<<] lt-util returned status: " $?
 ../test/verify_signature.py --message message --public-key public_key --signature signature3
+echo ${LINE}
+#xxd -p ${PATH_TO_BUILD}/signature3 | tr -d '\n' && echo ""
+./lt-util ${UART_PORT}  -e -s 0 message signature4; echo "[<<] lt-util returned status: " $?
 ../test/verify_signature.py --message message --public-key public_key --signature signature4
+echo ${LINE}
+#xxd -p ${PATH_TO_BUILD}/signature4 | tr -d '\n' && echo ""
+./lt-util ${UART_PORT}  -e -s 0 message signature5; echo "[<<] lt-util returned status: " $?
 ../test/verify_signature.py --message message --public-key public_key --signature signature5
-
-
+echo ${LINE}
+#xxd -p ${PATH_TO_BUILD}/signature5 | tr -d '\n' && echo ""
 
 cd -
