@@ -29,6 +29,8 @@
     #define LT_LOG_ERROR(f_, ...) LT_LOG("  [err]  " f_ "\r\n", ##__VA_ARGS__)
 #else
     #define LT_LOG(...)
+    #define LT_LOG_CMD(...)
+    #define LT_LOG_INFO(...)
     #define LT_LOG_ERROR(...)
 #endif
 
