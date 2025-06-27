@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# WARNING: THIS IS A WORK IN PROGRESS
+
+# This script uses lt-util tool together with USB devkit and does following:
+# 1. Tests the random number generator (RNG) with various lengths.
+# 2. Erases ECC slot 0.
+# 3. Generates an EdDSA keypair in ECC slot 0.
+# 4. Signs a message five times using the generated privkey.
+# 5. Verifies each signature against the original message and public key.
+# 6. Prints the status of each command executed.
+
 PATH_TO_BUILD="../build"
 UART_PORT="/dev/ttyACM0"
 cd ${PATH_TO_BUILD}

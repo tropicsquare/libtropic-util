@@ -39,16 +39,16 @@ project(libtropic_unix_spi_example
 ###########################################################################
 
 if(HW_SPI)
-    add_executable(lt-util src/main.c
+    add_executable(lt-util src/main. src/macandd.c
     ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_raspberrypi_wiringpi.c)
 endif()
 
 if(USB_DONGLE_TS1301)
-    add_executable(lt-util src/main.c
+    add_executable(lt-util src/main.c  src/macandd.c
         ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_unix_usb_dongle.c)
 endif()
 if(USB_DONGLE_TS1302)
-    add_executable(lt-util src/main.c
+    add_executable(lt-util src/main.c  src/macandd.c
         ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_unix_usb_dongle.c)
 endif()
 

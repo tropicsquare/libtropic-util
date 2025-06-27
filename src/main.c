@@ -15,18 +15,18 @@
 #include <string.h>
 #include <ctype.h>
 #include "libtropic.h"
-
+#include "macandd.h"
 
 // To have debug printouts enabled, pass -DCMAKE_BUILD_TYPE=Debug when building the project.
 #ifdef LT_UTIL_DEBUG
 #warning "Debug mode is enabled, this will print debug messages to stdout"
     // When uncommented, debug messages will contain line numbers
-    //#define LT_LOG(f_, ...) printf("LINE %d;\t" f_ "\r\n", __LINE__, ##__VA_ARGS__)
+    #define LT_LOG(f_, ...) printf("LINE %d;\t" f_ "", __LINE__, ##__VA_ARGS__)
     // When uncommented, debug messages will be printed out
-    #define LT_LOG(f_, ...) printf(f_ , ##__VA_ARGS__)
-    #define LT_LOG_CMD(f_, ...) printf("\r\n[CMD] " f_ "\r\n", ##__VA_ARGS__)
-    #define LT_LOG_INFO(f_, ...) printf("  [info] "f_ "\r\n", ##__VA_ARGS__)
-    #define LT_LOG_ERROR(f_, ...) printf("  [err]  " f_ "\r\n", ##__VA_ARGS__)
+    //#define LT_LOG(f_, ...) printf(f_ , ##__VA_ARGS__)
+    #define LT_LOG_CMD(f_, ...) LT_LOG("\r\n[CMD] " f_ "\r\n", ##__VA_ARGS__)
+    #define LT_LOG_INFO(f_, ...) LT_LOG("  [info] "f_ "\r\n", ##__VA_ARGS__)
+    #define LT_LOG_ERROR(f_, ...) LT_LOG("  [err]  " f_ "\r\n", ##__VA_ARGS__)
 #else
     #define LT_LOG(...)
     #define LT_LOG_ERROR(...)
@@ -96,6 +96,9 @@ uint8_t sh0pub[]  = {0xF9,0x75,0xEB,0x3C,0x2F,0xD7,0x90,0xC9,0x6F,0x29,0x4F,0x15
 #define MEM_STORE    "-s"
 #define MEM_READ     "-r"
 #define MEM_ERASE    "-e"
+// Mac And Destroy
+#define MAC_SET      "-mac-set"
+#define MAC_VERIFY   "-mac-ver"
 
 #if (USB_DONGLE_TS1301 || USB_DONGLE_TS1302)
 void print_usage(void) {
@@ -109,6 +112,9 @@ void print_usage(void) {
 "\t./lt-util /dev/ttyACM0 "MEM" " MEM_STORE" <slot>  <file>            # Memory  - Store content of filename (max size is 444B)  into memory slot\r\n"
 "\t./lt-util /dev/ttyACM0 "MEM" " MEM_READ" <slot>  <file>            # Memory  - Read content of memory slot (max size is 444B) into filename\r\n"
 "\t./lt-util /dev/ttyACM0 "MEM" " MEM_ERASE" <slot>                    # Memory  - Erase content of memory slot\r\n\n"
+// Mac and Destroy is not exposed until it works stable
+// lt-util -mac-set <pin> <add> <secret_generated>
+// lt-util -mac-ver <pin> <add> <secret_returned>
 "\t All commands return 0 if success, otherwise 1\r\n\n");
 }
 #endif
@@ -125,11 +131,14 @@ void print_usage(void) {
 "\t./lt-util "MEM" " MEM_STORE" <slot>  <file>            # Memory  - Store content of filename (max size is 444B)  into memory slot\r\n"
 "\t./lt-util "MEM" " MEM_READ" <slot>  <file>            # Memory  - Read content of memory slot (max size is 444B) into filename\r\n"
 "\t./lt-util "MEM" " MEM_ERASE" <slot>                    # Memory  - Erase content of memory slot\r\n\n"
+// Mac and Destroy is not exposed until it works stable
+// lt-util -mac-set <pin> <add> <secret_generated>
+// lt-util -mac-ver <pin> <add> <secret_returned>
 "\t All commands return 0 if success, otherwise 1\r\n\n");
 }
 #endif
 
-int process_rng_get(lt_handle_t *h, char *count_in, char *file) {
+static int process_rng_get(lt_handle_t *h, char *count_in, char *file) {
     if(!count_in || !file) {
         LT_LOG_ERROR("Error, NULL parameters process_rng_get()");
         return 1;
@@ -201,7 +210,7 @@ int process_rng_get(lt_handle_t *h, char *count_in, char *file) {
     return 0;
 }
 
-int process_ecc_install(lt_handle_t *h, char *slot_in, char *file) {
+static int process_ecc_install(lt_handle_t *h, char *slot_in, char *file) {
     if(!slot_in || !file) {
         LT_LOG_ERROR("Error, NULL parameters process_rng_get()");
         return 1;
@@ -266,7 +275,7 @@ int process_ecc_install(lt_handle_t *h, char *slot_in, char *file) {
     return 0;
 }
 
-int process_ecc_generate(lt_handle_t *h, char *slot_in) {
+static int process_ecc_generate(lt_handle_t *h, char *slot_in) {
     if(!slot_in) {
         LT_LOG_ERROR("Error, NULL parameters process_ecc_clear()");
         return 1;
@@ -318,7 +327,7 @@ int process_ecc_generate(lt_handle_t *h, char *slot_in) {
     return 0;
 }
 
-int process_ecc_download(lt_handle_t *h, char *slot_in, char *file) {
+static int process_ecc_download(lt_handle_t *h, char *slot_in, char *file) {
 
     if(!slot_in || !file) {
         LT_LOG_ERROR("Error, NULL parameters process_rng_get()");
@@ -386,7 +395,7 @@ int process_ecc_download(lt_handle_t *h, char *slot_in, char *file) {
     return 0;
 }
 
-int process_ecc_clear(lt_handle_t *h, char *slot_in) {
+static int process_ecc_clear(lt_handle_t *h, char *slot_in) {
     if(!slot_in) {
         LT_LOG_ERROR("Error, NULL parameters process_ecc_clear()");
         return 1;
@@ -438,7 +447,7 @@ int process_ecc_clear(lt_handle_t *h, char *slot_in) {
     return 0;
 }
 
-int process_ecc_sign(lt_handle_t *h, char *slot_in, char *msg_file_in, char* signature_file_out) {
+static int process_ecc_sign(lt_handle_t *h, char *slot_in, char *msg_file_in, char* signature_file_out) {
     if(!slot_in || !msg_file_in || !signature_file_out) {
         LT_LOG_ERROR("Error, NULL parameters process_rng_get()");
         return 1;
@@ -530,7 +539,7 @@ int process_ecc_sign(lt_handle_t *h, char *slot_in, char *msg_file_in, char* sig
     return 0;
 }
 
-int process_mem_store(lt_handle_t *h, char *slot_in, char *file) {
+static int process_mem_store(lt_handle_t *h, char *slot_in, char *file) {
     if(!slot_in || !file) {
         LT_LOG_ERROR("Error, NULL parameters process_mem_store()");
         return 1;
@@ -614,7 +623,7 @@ int process_mem_store(lt_handle_t *h, char *slot_in, char *file) {
 
 }
 
-int process_mem_read(lt_handle_t *h, char *slot_in, char *file) {
+static int process_mem_read(lt_handle_t *h, char *slot_in, char *file) {
     if(!slot_in || !file) {
         LT_LOG_ERROR("Error, NULL parameters process_mem_read()");
         return 1;
@@ -692,7 +701,7 @@ int process_mem_read(lt_handle_t *h, char *slot_in, char *file) {
 
 }
 
-int process_mem_erase(lt_handle_t *h, char *slot_in)
+static int process_mem_erase(lt_handle_t *h, char *slot_in)
 {
     if(!slot_in) {
         LT_LOG_ERROR("Error, NULL parameters process_mem_erase()");
@@ -700,9 +709,9 @@ int process_mem_erase(lt_handle_t *h, char *slot_in)
         LT_LOG_CMD("lt-util "MEM" "MEM_ERASE" %s", slot_in);
     }
 
-     // Parsing slot number
-     char *endptr;
-     long int slot = strtol(slot_in, &endptr, 10);
+    // Parsing slot number
+    char *endptr;
+    long int slot = strtol(slot_in, &endptr, 10);
     // TODO check endptr
 
     if((slot < 0) || (slot > 511)) {
@@ -737,6 +746,217 @@ int process_mem_erase(lt_handle_t *h, char *slot_in)
         return 1;
     } else {
         LT_LOG_INFO("lt_r_mem_data_erase(): %s", lt_ret_verbose(ret));
+    }
+
+    lt_deinit(h);
+
+    return 0;
+}
+
+// Debug output function to print data in hex format
+void print_hex(const uint8_t *data, size_t len) {
+    if (!data) {
+        printf("(null)\n");
+        return;
+    }
+    for (size_t i = 0; i < len; ++i) {
+        printf("%02X", data[i]);
+        if (i < len - 1) {
+            printf(" ");
+        }
+    }
+    printf("\n");
+}
+
+static int process_macandd_set(lt_handle_t *h, char *pin, char *add, char *filename)
+{
+    if(!h || !pin || !add || !filename) {
+        LT_LOG_ERROR("Error, NULL parameters process_macandd_set()");
+    } else {
+        LT_LOG_CMD("lt-util "MAC_SET" %s %s %s", pin, add, filename);
+    }
+
+    // Parse 4-digit PIN string into uint8_t array
+    uint8_t pin_bytes[4] = {0};
+    size_t pin_len = strlen(pin);
+    if (pin_len != 4) {
+        LT_LOG_ERROR("PIN must be exactly 4 digits");
+        return 1;
+    }
+    for (size_t i = 0; i < 4; ++i) {
+        if (!isdigit((unsigned char)pin[i])) {
+            LT_LOG_ERROR("PIN must contain only digits");
+            return 1;
+        }
+        pin_bytes[i] = (uint8_t)(pin[i] - '0');
+    }
+
+    // Parse hexadecimal string from 'add' into uint8_t array
+    size_t add_len = strlen(add);
+    if (add_len % 2 != 0) {
+        LT_LOG_ERROR("Address hex string must have even length");
+        return 1;
+    }
+    uint8_t add_bytes_len = add_len / 2;
+    uint8_t add_bytes[32] = {0}; // adjust size as needed
+    if (add_bytes_len > sizeof(add_bytes)) {
+        LT_LOG_ERROR("Address too long, max %zu bytes", sizeof(add_bytes));
+        return 1;
+    }
+    for (size_t i = 0; i < add_bytes_len; ++i) {
+        char byte_str[3] = { add[2*i], add[2*i+1], '\0' };
+        char *endptr = NULL;
+        long val = strtol(byte_str, &endptr, 16);
+        if (*endptr != '\0' || val < 0 || val > 0xFF) {
+            LT_LOG_ERROR("Invalid hex character in address");
+            return 1;
+        }
+        add_bytes[i] = (uint8_t)val;
+    }
+
+    // Clear given slot in TROPIC01
+    lt_ret_t ret = lt_init(h);
+    if(ret != LT_OK) {
+        LT_LOG_ERROR("Error lt_init(): %s", lt_ret_verbose(ret));
+        return 1;
+    } else {
+        LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
+    }
+    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
+    if(ret != LT_OK) {
+        LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
+        lt_deinit(h);
+        return 1;
+    } else {
+        LT_LOG_INFO("Secure channel established: %s", lt_ret_verbose(ret));
+    }
+
+    uint8_t secret[32];
+
+    print_hex(pin_bytes, 4);
+    print_hex(add_bytes, add_bytes_len);
+    printf("%d\r\n", add_bytes_len);
+
+    ret = lt_PIN_set(h, pin_bytes, 4, add_bytes, add_bytes_len, secret);
+    if (ret != LT_OK) {
+        LT_LOG_ERROR("Error setting PIN and address: %s", lt_ret_verbose(ret));
+        return 1;
+    } else {
+        LT_LOG_INFO("PIN and address set successfully");
+    }
+    print_hex(secret, sizeof(secret));
+    printf("\r\n");
+
+    // store secret into file
+    FILE *fp = fopen(filename, "wb");
+    if (fp == NULL) {
+        LT_LOG_ERROR("Error opening file %s for writing", filename);
+        return 1;
+    }
+    size_t written = fwrite(secret, sizeof(uint8_t), sizeof(secret), fp);
+    if (written != sizeof(secret)) {
+        LT_LOG_ERROR("Error writing secret to file, %zu bytes written", written);
+        fclose(fp);
+        return 1;
+    } else {
+        LT_LOG_INFO("Wrote %zu bytes into file \"%s\"", written, filename);
+    }
+
+    lt_deinit(h);
+
+    return 0;
+}
+
+static int process_macandd_verify(lt_handle_t *h, char *pin, char *add, char *filename)
+{
+    if(!h || !pin || !add || !filename) {
+        LT_LOG_ERROR("Error, NULL parameters process_macandd_verify()");
+    } else {
+        LT_LOG_CMD("lt-util "MAC_VERIFY" %s %s %s", pin, add, filename);
+    }
+
+    // Parse 4-digit PIN string into uint8_t array
+    uint8_t pin_bytes[4] = {0};
+    size_t pin_len = strlen(pin);
+    if (pin_len != 4) {
+        LT_LOG_ERROR("PIN must be exactly 4 digits");
+        return 1;
+    }
+    for (size_t i = 0; i < 4; ++i) {
+        if (!isdigit((unsigned char)pin[i])) {
+            LT_LOG_ERROR("PIN must contain only digits");
+            return 1;
+        }
+        pin_bytes[i] = (uint8_t)(pin[i] - '0');
+    }
+
+    // Parse hexadecimal string in 'add' into uint8_t array
+    size_t add_len = strlen(add);
+    if (add_len % 2 != 0) {
+        LT_LOG_ERROR("Address hex string must have even length");
+        return 1;
+    }
+    uint8_t add_bytes_len = add_len / 2;
+    uint8_t add_bytes[32] = {0}; // adjust size as needed
+    if (add_bytes_len > sizeof(add_bytes)) {
+        LT_LOG_ERROR("Address too long, max %zu bytes", sizeof(add_bytes));
+        return 1;
+    }
+    for (size_t i = 0; i < add_bytes_len; ++i) {
+        char byte_str[3] = { add[2*i], add[2*i+1], '\0' };
+        char *endptr = NULL;
+        long val = strtol(byte_str, &endptr, 16);
+        if (*endptr != '\0' || val < 0 || val > 0xFF) {
+            LT_LOG_ERROR("Invalid hex character in address");
+            return 1;
+        }
+        add_bytes[i] = (uint8_t)val;
+    }
+
+    // Clear given slot in TROPIC01
+    lt_ret_t ret = lt_init(h);
+    if(ret != LT_OK) {
+        LT_LOG_ERROR("Error lt_init(): %s", lt_ret_verbose(ret));
+        return 1;
+    } else {
+        LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
+    }
+    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
+    if(ret != LT_OK) {
+        LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
+        lt_deinit(h);
+        return 1;
+    } else {
+        LT_LOG_INFO("Secure channel established: %s", lt_ret_verbose(ret));
+    }
+
+    uint8_t secret[32];
+    print_hex(pin_bytes, 4);
+    print_hex(add_bytes, add_bytes_len);
+    print_hex(secret, sizeof(secret));
+    printf("%d\r\n", add_bytes_len);
+
+    ret = lt_PIN_check(h, pin_bytes, 4, add_bytes, add_bytes_len, secret);
+    if (ret != LT_OK) {
+        LT_LOG_ERROR("lt_PIN_check(): %s", lt_ret_verbose(ret));
+        return 1;
+    } else {
+        LT_LOG_INFO("PIN checked successfully");
+    }
+
+    // store secret into file
+    FILE *fp = fopen(filename, "wb");
+    if (fp == NULL) {
+        LT_LOG_ERROR("Error opening file %s for writing", filename);
+        return 1;
+    }
+    size_t written = fwrite(secret, sizeof(uint8_t), sizeof(secret), fp);
+    if (written != sizeof(secret)) {
+        LT_LOG_ERROR("Error writing secret to file, %zu bytes written", written);
+        fclose(fp);
+        return 1;
+    } else {
+        LT_LOG_INFO("Wrote %zu bytes into file \"%s\"", written, filename);
     }
 
     lt_deinit(h);
@@ -792,6 +1012,12 @@ int main(int argc, char *argv[]) {
             } else if (strcmp(argv[3], MEM_READ) == 0) {
                 return process_mem_read(&h, argv[4], argv[5]);
             }
+        } // Macandd set 6 arguments
+        else if(strcmp(argv[2], MAC_SET) == 0) {
+            return process_macandd_set(&h, argv[3], argv[4], argv[5]);
+        } // Macandd verify 6 arguments
+        else if(strcmp(argv[2], MAC_VERIFY) == 0) {
+            return process_macandd_verify(&h, argv[3], argv[4], argv[5]);
         }
     } else if (argc == 7) {
         if(strcmp(argv[2], ECC) == 0) {
@@ -800,7 +1026,6 @@ int main(int argc, char *argv[]) {
             }
         }
     }
-
     LT_LOG_ERROR("ERROR wrong parameters entered");
     return 2;
 }
