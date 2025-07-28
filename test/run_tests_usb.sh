@@ -11,7 +11,7 @@
 # 6. Prints the status of each command executed.
 
 PATH_TO_BUILD="../build"
-UART_PORT="/dev/ttyACM0"
+UART_PORT=${1:-/dev/ttyACM0}
 cd ${PATH_TO_BUILD}
 
 
