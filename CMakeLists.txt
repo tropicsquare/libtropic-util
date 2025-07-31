@@ -11,12 +11,13 @@ cmake_minimum_required(VERSION 3.21.0)
 
 set(PATH_LIBTROPIC "libtropic/")
 
-option(HW_SPI      "Compile for hw spi on rpi" OFF)
+option(UNIX_SPI           "Compile for generic SPI and GPIO Linux UAPI" OFF)
+option(HW_SPI             "Compile for hw spi on rpi" OFF)
 option(USB_DONGLE_TS1301  "Compile for TS1301 USB dongle" OFF)
 option(USB_DONGLE_TS1302  "Compile for TS1302 USB dongle" OFF)
 
 # If none of the options are set, enable USB_DONGLE_TS1302 by default
-if(NOT HW_SPI AND NOT USB_DONGLE_TS1301 AND NOT USB_DONGLE_TS1302)
+if(NOT HW_SPI AND NOT USB_DONGLE_TS1301 AND NOT USB_DONGLE_TS1302 AND NOT UNIX_SPI)
     set(USB_DONGLE_TS1302 ON CACHE BOOL "Compile for TS1302 USB dongle" FORCE)
 endif()
 
@@ -39,7 +40,7 @@ project(libtropic_unix_spi_example
 ###########################################################################
 
 if(HW_SPI)
-    add_executable(lt-util src/main. src/macandd.c
+    add_executable(lt-util src/main.c src/macandd.c
     ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_raspberrypi_wiringpi.c)
 endif()
 
@@ -47,9 +48,15 @@ if(USB_DONGLE_TS1301)
     add_executable(lt-util src/main.c  src/macandd.c
         ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_unix_usb_dongle.c)
 endif()
+
 if(USB_DONGLE_TS1302)
     add_executable(lt-util src/main.c  src/macandd.c
         ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_unix_usb_dongle.c)
+endif()
+
+if(UNIX_SPI)
+    add_executable(lt-util src/main.c  src/macandd.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_unix.c)
 endif()
 
 ###########################################################################
@@ -67,6 +74,8 @@ set(LT_USE_TREZOR_CRYPTO ON)
 # Add path to libtropic's repository root folder
 add_subdirectory(${PATH_LIBTROPIC} "libtropic")
 
+include_directories(${PATH_LIBTROPIC}/src)
+
 # Customize libtropic's compilation
 target_compile_options(tropic PRIVATE -Wall)
 target_compile_options(tropic PRIVATE -ffunction-sections -fdata-sections)
@@ -83,6 +92,10 @@ if(HW_SPI)
     target_compile_definitions(lt-util PRIVATE HW_SPI)
 endif()
 
+if(UNIX_SPI)
+    target_compile_definitions(lt-util PRIVATE UNIX_SPI)
+endif()
+
 # To see debug messages in the console, pass -DCMAKE_BUILD_TYPE=Debug when invoking cmake
 target_compile_definitions(lt-util PRIVATE "$<$<CONFIG:DEBUG>:LT_UTIL_DEBUG>")
 
@@ -95,7 +108,7 @@ target_compile_definitions(lt-util PRIVATE "$<$<CONFIG:DEBUG>:LT_UTIL_DEBUG>")
 
 target_link_options(lt-util PRIVATE -Wl,--gc-sections)
 
-if(USB_DONGLE_TS1301 OR USB_DONGLE_TS1302)
+if(USB_DONGLE_TS1301 OR USB_DONGLE_TS1302 OR UNIX_SPI)
     target_link_libraries(lt-util PRIVATE tropic)
 endif()
 
