@@ -16,6 +16,12 @@
 #include <ctype.h>
 #include "libtropic.h"
 #include "macandd.h"
+// #include "libtropic_examples.h"
+uint8_t sh0priv[] = {0xd0, 0x99, 0x92, 0xb1, 0xf1, 0x7a, 0xbc, 0x4d, 0xb9, 0x37, 0x17, 0x68, 0xa2, 0x7d, 0xa0, 0x5b,
+                     0x18, 0xfa, 0xb8, 0x56, 0x13, 0xa7, 0x84, 0x2c, 0xa6, 0x4c, 0x79, 0x10, 0xf2, 0x2e, 0x71, 0x6b};
+uint8_t sh0pub[] = {0xe7, 0xf7, 0x35, 0xba, 0x19, 0xa3, 0x3f, 0xd6, 0x73, 0x23, 0xab, 0x37, 0x26, 0x2d, 0xe5, 0x36,
+                    0x08, 0xca, 0x57, 0x85, 0x76, 0x53, 0x43, 0x52, 0xe1, 0x8f, 0x64, 0xe6, 0x13, 0xd3, 0x8d, 0x54};
+
 
 // To have debug printouts enabled, pass -DCMAKE_BUILD_TYPE=Debug when building the project.
 #ifdef LT_UTIL_DEBUG
@@ -120,7 +126,7 @@ void print_usage(void) {
 "\t All commands return 0 if success, otherwise 1\r\n\n");
 }
 #endif
-#ifdef HW_SPI
+#if (HW_SPI || UNIX_SPI)
 
 void print_usage(void) {
     printf("\r\nUsage:\r\n\n"
@@ -185,13 +191,13 @@ static int process_rng_get(lt_handle_t *h, char *count_in, char *file) {
         LT_LOG_INFO("Secure channel established: %s", lt_ret_verbose(ret));
     }
 
-    ret = lt_random_get(h, bytes, count);
+    ret = lt_random_value_get(h, bytes, count);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(h);
         return ret;
     } else {
-        LT_LOG_INFO("lt_random_get(): %s", lt_ret_verbose(ret));
+        LT_LOG_INFO("lt_random_value_get(): %s", lt_ret_verbose(ret));
     }
 
     // Store content of bytes[] buffer into file
@@ -378,7 +384,7 @@ static int process_ecc_download(lt_handle_t *h, char *slot_in, char *file) {
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
-    ret = lt_ecc_key_read(h, (uint8_t)slot, pubkey, 64, &curve, &origin);
+    ret = lt_ecc_key_read(h, (uint8_t)slot, pubkey, &curve, &origin);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(h);
@@ -514,7 +520,7 @@ static int process_ecc_sign(lt_handle_t *h, char *slot_in, char *msg_file_in, ch
         LT_LOG_INFO("Secure channel established: %s", lt_ret_verbose(ret));
     }
     uint8_t signature_rs[64] = {0};
-    ret = lt_ecc_eddsa_sign(h, (uint8_t)slot, msg, msg_size, signature_rs, 64);
+    ret = lt_ecc_eddsa_sign(h, (uint8_t)slot, msg, msg_size, signature_rs);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(h);
@@ -675,7 +681,8 @@ static int process_mem_read(lt_handle_t *h, char *slot_in, char *file) {
     }
     lt_ecc_curve_type_t curve = 2;
     ecc_key_origin_t origin = 2;
-    ret = lt_r_mem_data_read(h, (uint16_t)slot, mem_content, 32);
+    uint16_t data_size;
+    ret = lt_r_mem_data_read(h, (uint16_t)slot, mem_content, &data_size);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error l3 cmd: %s", lt_ret_verbose(ret));
         lt_deinit(h);
@@ -1093,4 +1100,65 @@ int main(int argc, char *argv[]) {
     return 1;
 }
 
+#endif
+
+#ifdef UNIX_SPI
+int main(int argc, char *argv[]) {
+    //LT_LOG ("argc %d   %s  %s  %s  %s \r\n", argc, argv[0], argv[1], argv[2], argv[3]);
+    if ((argc == 1)) {
+        print_usage();
+        return 0;
+    }
+
+    lt_handle_t h;
+    // lt_uart_def_unix_t uart = {0};
+    // h.l2.device = &uart;
+    // uart.baud_rate = 115200;
+    // strncpy(uart.device, argv[1], UART_DEV_MAX_LEN);
+
+    if (argc == 4) {
+        // RNG
+        if(strcmp(argv[1], RNG) == 0) {
+            return process_rng_get(&h, argv[2], argv[3]);
+        }
+        // ECC 5 arguments
+        else if(strcmp(argv[1], ECC) == 0) {
+            if (strcmp(argv[2], ECC_GENERATE) == 0) {
+                process_ecc_generate(&h, argv[3]);
+                return 0;
+            } else if (strcmp(argv[2], ECC_CLEAR) == 0) {
+                return process_ecc_clear(&h, argv[3]);
+            }
+        }
+        // MEM 4 arguments
+        else if(strcmp(argv[1], MEM) == 0) {
+            if (strcmp(argv[2], MEM_ERASE) == 0) {
+                return process_mem_erase(&h, argv[4]);
+            }
+        }
+    } else if (argc == 5) {
+        if(strcmp(argv[1], ECC) == 0) {
+            if (strcmp(argv[2], ECC_INSTALL) == 0) {
+                return process_ecc_install(&h, argv[3], argv[4]);
+            } else if (strcmp(argv[2], ECC_DOWNLOAD) == 0) {
+                return process_ecc_download(&h, argv[3], argv[4]);
+            }
+        } else if(strcmp(argv[1], MEM) == 0) {
+            if (strcmp(argv[2], MEM_STORE) == 0) {
+                return process_mem_store(&h, argv[3], argv[4]);
+            } else if (strcmp(argv[2], MEM_READ) == 0) {
+                return process_mem_read(&h, argv[3], argv[4]);
+            }
+        }
+    } else if (argc == 6) {
+        if(strcmp(argv[1], ECC) == 0) {
+            if (strcmp(argv[2], ECC_SIGN) == 0) {
+                return process_ecc_sign(&h, argv[3], argv[4], argv[5]);
+            }
+        }
+    }
+
+    LT_LOG_ERROR("ERROR wrong parameters entered\r\n");
+    return 1;
+}
 #endif
