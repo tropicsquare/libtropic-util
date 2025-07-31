@@ -10,6 +10,8 @@
 #include "lt_hmac_sha256.h"
 #include "macandd.h"
 
+/** @brief Last slot in User memory used for storing of M&D related data (only in this example). */
+#define R_MEM_DATA_SLOT_MACANDD (511)
 
 /**
  * @brief Example function how to set PIN with Mac And Destroy
