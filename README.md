@@ -1,7 +1,7 @@
 # lt-util
 
-[!WARNING]
-This software shall not be used in production. Use with care. Basically this is a C wrapper for libtropic library. Once compiled, it can be executed from bash and used for direct access to TROPIC01 features. 
+> [!WARNING]
+> This software shall not be used in production. Use with care. Basically this is a C wrapper for libtropic library. Once compiled, it can be executed from bash and used for direct access to TROPIC01 features. 
 
 Contributors, please follow [guidelines](https://github.com/tropicsquare/libtropic-util/blob/main/CONTRIBUTING.md).
 
@@ -181,3 +181,25 @@ Usage:
 # Test
 
 Check out [test](https://github.com/tropicsquare/libtropic-util/test/README.md) readme in `test/` folder, there are steps how to check if everything works properly.
+
+# Generic Unix SPI
+This can be used on Linux-based platforms with hardware SPI, e.g. Raspberry Pi. This implementation is not dependent on wiringPi.
+
+## Prerequisites
+Enable hardware SPI kernel module. On Raspberry Pi you can use `raspi-config`:
+
+```sh
+sudo raspi-config  # then go into Interfaces and enable SPI 
+```
+
+## Compile
+First get into the folder of cloned repository:
+```
+cd <path_to_cloned_libtropic-util_repository>
+```
+
+Then use this one-line comand for compiling (tested on Raspberry Pi 3 and Raspberry Pi 4):
+```
+mkdir build &&  cd build && cmake -DUNIX_SPI=1 .. && make
+```
+Binary will be produced in `build/` directory.

@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Switches to diferentiate usb devkits: `USB_DONGLE_TS1301` and `USB_DONGLE_TS1302`
+- Switches to diferentiate usb devkits: `USB_DONGLE_TS1301` and `USB_DONGLE_TS1302`.
+- Generic Unix SPI device support.
 
 ### Fixed
