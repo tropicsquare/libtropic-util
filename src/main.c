@@ -14,12 +14,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "libtropic.h"
 #include "macandd.h"
+#include "libtropic.h"
 #include "libtropic_port.h"
 #include "libtropic_logging.h"
 #include "libtropic_examples.h"
-
+#include "libtropic_common.h"
 
 #define LT_LOG_CMD(f_, ...) LT_LOG("[CMD] " f_, ##__VA_ARGS__)
 
@@ -979,6 +979,34 @@ static int process_macandd_verify(lt_handle_t *h, char *pin, char *add, char *fi
     return 0;
 }
 
+static int process_chip_id(lt_handle_t *h) {
+    
+    struct lt_chip_id_t chip_id;
+
+    lt_ret_t ret = lt_init(h);
+    
+    if(ret != LT_OK) {
+        LT_LOG_ERROR("Error lt_init(): %s", lt_ret_verbose(ret));
+        return 1;
+    }
+
+    ret = lt_get_info_chip_id(h, &chip_id);
+    if (ret != LT_OK) {
+        LT_LOG_ERROR("Error lt_get_info_chip_id: %s", lt_ret_verbose(ret));
+        return 1;
+    }
+    
+    ret = lt_print_chip_id(&chip_id, printf);
+    if (ret != LT_OK) {
+        LT_LOG_ERROR("Error lt_print_chip_id: %s", lt_ret_verbose(ret));
+        return 1;
+    }
+
+    lt_deinit(h);
+
+    return 0;
+}
+
 // When compiled for usb dongle, besides inputs used by TROPIC01, API also receives serialport string
 #if (USB_DONGLE_TS1301 || USB_DONGLE_TS1302)
 int main(int argc, char *argv[]) {
@@ -1128,9 +1156,7 @@ int main(int argc, char *argv[]) {
 
     if (argc == 2) {
         if (strcmp(argv[1], CHIP_ID) == 0) {
-            // TODO: implement chip id here!
-            LT_LOG_ERROR("Not implemented yet!");
-            return -1;
+            return process_chip_id(&h);
         }
     }
     else if (argc == 4) {
