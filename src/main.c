@@ -17,6 +17,7 @@
 #include "libtropic.h"
 #include "macandd.h"
 #include "libtropic_port.h"
+#include "libtropic_logging.h"
 
 // #include "libtropic_examples.h"
 uint8_t sh0priv[] = {0xd0, 0x99, 0x92, 0xb1, 0xf1, 0x7a, 0xbc, 0x4d, 0xb9, 0x37, 0x17, 0x68, 0xa2, 0x7d, 0xa0, 0x5b,
@@ -25,22 +26,7 @@ uint8_t sh0pub[] = {0xe7, 0xf7, 0x35, 0xba, 0x19, 0xa3, 0x3f, 0xd6, 0x73, 0x23, 
                     0x08, 0xca, 0x57, 0x85, 0x76, 0x53, 0x43, 0x52, 0xe1, 0x8f, 0x64, 0xe6, 0x13, 0xd3, 0x8d, 0x54};
 
 
-// To have debug printouts enabled, pass -DCMAKE_BUILD_TYPE=Debug when building the project.
-#ifdef LT_UTIL_DEBUG
-#warning "Debug mode is enabled, this will print debug messages to stdout"
-    // When uncommented, debug messages will contain line numbers
-    #define LT_LOG(f_, ...) printf("LINE %d;\t" f_ "", __LINE__, ##__VA_ARGS__)
-    // When uncommented, debug messages will be printed out
-    //#define LT_LOG(f_, ...) printf(f_ , ##__VA_ARGS__)
-    #define LT_LOG_CMD(f_, ...) LT_LOG("\r\n[CMD] " f_ "\r\n", ##__VA_ARGS__)
-    #define LT_LOG_INFO(f_, ...) LT_LOG("  [info] "f_ "\r\n", ##__VA_ARGS__)
-    #define LT_LOG_ERROR(f_, ...) LT_LOG("  [err]  " f_ "\r\n", ##__VA_ARGS__)
-#else
-    #define LT_LOG(...)
-    #define LT_LOG_CMD(...)
-    #define LT_LOG_INFO(...)
-    #define LT_LOG_ERROR(...)
-#endif
+#define LT_LOG_CMD(f_, ...) LT_LOG("[CMD] " f_, ##__VA_ARGS__)
 
 #define HEX_DATA_SIZE 32
 
