@@ -97,8 +97,10 @@ if(UNIX_SPI)
 endif()
 
 # To see debug messages in the console, pass -DCMAKE_BUILD_TYPE=Debug when invoking cmake
-target_compile_definitions(lt-util PRIVATE "$<$<CONFIG:DEBUG>:LT_UTIL_DEBUG>")
-
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message("Debug logging active!")
+    target_compile_definitions(lt-util PRIVATE LIBT_DEBUG)
+endif()
 
 ###########################################################################
 #                                                                         #
