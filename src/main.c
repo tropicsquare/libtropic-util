@@ -14,12 +14,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "libtropic.h"
 #include "macandd.h"
+#include "libtropic.h"
 #include "libtropic_port.h"
 #include "libtropic_logging.h"
 #include "libtropic_examples.h"
-
+#include "libtropic_common.h"
 
 #define LT_LOG_CMD(f_, ...) LT_LOG("[CMD] " f_, ##__VA_ARGS__)
 
@@ -73,6 +73,9 @@ uint8_t sh0priv[] = {0x28,0x3F,0x5A,0x0F,0xFC,0x41,0xCF,0x50,0x98,0xA8,0xE1,0x7D
 uint8_t sh0pub[]  = {0xF9,0x75,0xEB,0x3C,0x2F,0xD7,0x90,0xC9,0x6F,0x29,0x4F,0x15,0x57,0xA5,0x03,0x17,0x80,0xC9,0xAA,0xFA,0x14,0x0D,0xA2,0x8F,0x55,0xE7,0x51,0x57,0x37,0xB2,0x50,0x2C};
 #endif
 
+// CHIP_ID
+#define CHIP_ID "-i"
+
 // RNG
 #define RNG         "-r"
 // ECC
@@ -109,10 +112,30 @@ void print_usage(void) {
 "\t All commands return 0 if success, otherwise 1\r\n\n");
 }
 #endif
-#if (HW_SPI || UNIX_SPI)
+#ifdef HW_SPI
 
 void print_usage(void) {
     printf("\r\nUsage:\r\n\n"
+"\t./lt-util "RNG"    <count> <file>            # Random  - Get 1-255 random bytes and store them into file\r\n"
+"\t./lt-util "ECC" "  ECC_INSTALL" <slot>  <file>            # ECC key - Install private key from keypair.bin into a given slot\r\n"
+"\t./lt-util "ECC" " ECC_GENERATE" <slot>                    # ECC key - Generate private key in a given slot\r\n"
+"\t./lt-util "ECC" " ECC_DOWNLOAD" <slot>  <file>            # ECC key - Download public key from given slot into file\r\n"
+"\t./lt-util "ECC" " ECC_CLEAR" <slot>                    # ECC key - Clear given ECC slot\r\n"
+"\t./lt-util "ECC" " ECC_SIGN" <slot>  <file1> <file2>   # ECC key - Sign content of file1 (max size is 4095B) with key from a given slot and store resulting signature into file2\r\n"
+"\t./lt-util "MEM" " MEM_STORE" <slot>  <file>            # Memory  - Store content of filename (max size is 444B)  into memory slot\r\n"
+"\t./lt-util "MEM" " MEM_READ" <slot>  <file>            # Memory  - Read content of memory slot (max size is 444B) into filename\r\n"
+"\t./lt-util "MEM" " MEM_ERASE" <slot>                    # Memory  - Erase content of memory slot\r\n\n"
+// Mac and Destroy is not exposed until it works stable
+// lt-util -mac-set <pin> <add> <secret_generated>
+// lt-util -mac-ver <pin> <add> <secret_returned>
+"\t All commands return 0 if success, otherwise 1\r\n\n");
+}
+#endif
+
+#ifdef UNIX_SPI
+void print_usage(void) {
+    printf("\r\nUsage:\r\n\n"
+"\t./lt-util "CHIP_ID"                              # Print chip identification\r\n"
 "\t./lt-util "RNG"    <count> <file>            # Random  - Get 1-255 random bytes and store them into file\r\n"
 "\t./lt-util "ECC" "  ECC_INSTALL" <slot>  <file>            # ECC key - Install private key from keypair.bin into a given slot\r\n"
 "\t./lt-util "ECC" " ECC_GENERATE" <slot>                    # ECC key - Generate private key in a given slot\r\n"
@@ -956,6 +979,34 @@ static int process_macandd_verify(lt_handle_t *h, char *pin, char *add, char *fi
     return 0;
 }
 
+static int process_chip_id(lt_handle_t *h) {
+    
+    struct lt_chip_id_t chip_id;
+
+    lt_ret_t ret = lt_init(h);
+    
+    if(ret != LT_OK) {
+        LT_LOG_ERROR("Error lt_init(): %s", lt_ret_verbose(ret));
+        return 1;
+    }
+
+    ret = lt_get_info_chip_id(h, &chip_id);
+    if (ret != LT_OK) {
+        LT_LOG_ERROR("Error lt_get_info_chip_id: %s", lt_ret_verbose(ret));
+        return 1;
+    }
+    
+    ret = lt_print_chip_id(&chip_id, printf);
+    if (ret != LT_OK) {
+        LT_LOG_ERROR("Error lt_print_chip_id: %s", lt_ret_verbose(ret));
+        return 1;
+    }
+
+    lt_deinit(h);
+
+    return 0;
+}
+
 // When compiled for usb dongle, besides inputs used by TROPIC01, API also receives serialport string
 #if (USB_DONGLE_TS1301 || USB_DONGLE_TS1302)
 int main(int argc, char *argv[]) {
@@ -1103,7 +1154,12 @@ int main(int argc, char *argv[]) {
     lt_handle_t h;
     h.l2.device = &device;
 
-    if (argc == 4) {
+    if (argc == 2) {
+        if (strcmp(argv[1], CHIP_ID) == 0) {
+            return process_chip_id(&h);
+        }
+    }
+    else if (argc == 4) {
         // RNG
         if(strcmp(argv[1], RNG) == 0) {
             return process_rng_get(&h, argv[2], argv[3]);
@@ -1120,7 +1176,7 @@ int main(int argc, char *argv[]) {
         // MEM 4 arguments
         else if(strcmp(argv[1], MEM) == 0) {
             if (strcmp(argv[2], MEM_ERASE) == 0) {
-                return process_mem_erase(&h, argv[4]);
+                return process_mem_erase(&h, argv[3]);
             }
         }
     } else if (argc == 5) {
