@@ -16,6 +16,8 @@
 #include <ctype.h>
 #include "libtropic.h"
 #include "macandd.h"
+#include "libtropic_port.h"
+
 // #include "libtropic_examples.h"
 uint8_t sh0priv[] = {0xd0, 0x99, 0x92, 0xb1, 0xf1, 0x7a, 0xbc, 0x4d, 0xb9, 0x37, 0x17, 0x68, 0xa2, 0x7d, 0xa0, 0x5b,
                      0x18, 0xfa, 0xb8, 0x56, 0x13, 0xa7, 0x84, 0x2c, 0xa6, 0x4c, 0x79, 0x10, 0xf2, 0x2e, 0x71, 0x6b};
@@ -1110,11 +1112,15 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    // This will setup mappings compatible with RPi and our RPi shield.
+    lt_dev_unix_spi_t device = {0};
+    strcpy(device.gpio_dev, "/dev/gpiochip0");
+    strcpy(device.spi_dev, "/dev/spidev0.0");
+    device.spi_speed = 1000000; // 1 MHz
+    device.gpio_cs_num = 25;    // GPIO 25 as on RPi shield.
+
     lt_handle_t h;
-    // lt_uart_def_unix_t uart = {0};
-    // h.l2.device = &uart;
-    // uart.baud_rate = 115200;
-    // strncpy(uart.device, argv[1], UART_DEV_MAX_LEN);
+    h.l2.device = &device;
 
     if (argc == 4) {
         // RNG
