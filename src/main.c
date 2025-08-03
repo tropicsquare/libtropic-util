@@ -137,14 +137,14 @@ void print_usage(void) {
     printf("\r\nUsage:\r\n\n"
 "\t./lt-util "CHIP_ID"                              # Print chip identification\r\n"
 "\t./lt-util "RNG"    <count> <file>            # Random  - Get 1-255 random bytes and store them into file\r\n"
-"\t./lt-util "ECC" "  ECC_INSTALL" <slot>  <file>            # ECC key - Install private key from keypair.bin into a given slot\r\n"
-"\t./lt-util "ECC" " ECC_GENERATE" <slot>                    # ECC key - Generate private key in a given slot\r\n"
-"\t./lt-util "ECC" " ECC_DOWNLOAD" <slot>  <file>            # ECC key - Download public key from given slot into file\r\n"
-"\t./lt-util "ECC" " ECC_CLEAR" <slot>                    # ECC key - Clear given ECC slot\r\n"
-"\t./lt-util "ECC" " ECC_SIGN" <slot>  <file1> <file2>   # ECC key - Sign content of file1 (max size is 4095B) with key from a given slot and store resulting signature into file2\r\n"
-"\t./lt-util "MEM" " MEM_STORE" <slot>  <file>            # Memory  - Store content of filename (max size is 444B)  into memory slot\r\n"
-"\t./lt-util "MEM" " MEM_READ" <slot>  <file>            # Memory  - Read content of memory slot (max size is 444B) into filename\r\n"
-"\t./lt-util "MEM" " MEM_ERASE" <slot>                    # Memory  - Erase content of memory slot\r\n\n"
+"\t./lt-util "ECC" "  ECC_INSTALL" <slot>  <file>            # ECC key - Install private key from keypair.bin into a given slot (0-31)\r\n"
+"\t./lt-util "ECC" " ECC_GENERATE" <slot>                    # ECC key - Generate private key in a given slot (0-31)\r\n"
+"\t./lt-util "ECC" " ECC_DOWNLOAD" <slot>  <file>            # ECC key - Download public key from given slot (0-31) into file\r\n"
+"\t./lt-util "ECC" " ECC_CLEAR" <slot>                    # ECC key - Clear given ECC slot (0-31)\r\n"
+"\t./lt-util "ECC" " ECC_SIGN" <slot>  <file1> <file2>   # ECC key - Sign content of file1 (max size is 4095B) with key from a given slot (0-31) and store resulting signature into file2\r\n"
+"\t./lt-util "MEM" " MEM_STORE" <slot>  <file>            # Memory  - Store content of filename (max size is 444B)  into memory slot (0-511)\r\n"
+"\t./lt-util "MEM" " MEM_READ" <slot>  <file>            # Memory  - Read content of memory slot (0-511) into filename (max size is 444B)\r\n"
+"\t./lt-util "MEM" " MEM_ERASE" <slot>                    # Memory  - Erase content of memory slot (0-511)\r\n\n"
 // Mac and Destroy is not exposed until it works stable
 // lt-util -mac-set <pin> <add> <secret_generated>
 // lt-util -mac-ver <pin> <add> <secret_returned>
