@@ -30,7 +30,7 @@ make
 ./lt-util
 ```
 
-> [!INFO]
+> [!NOTE]
 > This will output the usage of this example, showing all available flags and arguments that can be passed to the program.
 
 ### Verifying chip information
@@ -82,7 +82,7 @@ To make the libtropic API and other related functionalities available, a few inc
 #include "libtropic_common.h"  // Definitions of commonly used macros, structures or enums.
 ```
 
-> [!INFO]
+> [!NOTE]
 > All libtropic API functions are prefixed with 'lt_'.
 
 In the `main.c` file, there are macros for various communication interfaces, but the `UNIX_SPI` is the important one for this document / RPi example.
@@ -150,7 +150,7 @@ static int process_chip_id(lt_handle_t *h) {
 }
 ```
 
-> ![INFO]
+> [!NOTE]
 > Naturally, there are also other wrapper functions like `process_chip_id` in the discussed `main.c` file (all have the prefix `process_`). Some of them execute Layer 3 API calls, which also require establishing a secure session with one of the pairing key slots, usually with the provisioned slot 0. For establishing the secure session, we recommend using the helper function `verify_chip_and_start_secure_session()` from `libtropic.c`, which executes multiple API command calls, including the two most important ones: `lt_get_st_pub()` and `lt_session_start()`.
 
 ## Creating a New Application / Embedded Platform with libtropic SDK
