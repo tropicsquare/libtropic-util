@@ -701,8 +701,8 @@ static int process_mem_read(lt_handle_t *h, char *slot_in, char *file) {
     }
 
     // Store content of bytes[] buffer into file
-    size_t written = fwrite(mem_content, sizeof(uint8_t), 32, fp);
-    if(written != 32) {
+    size_t written = fwrite(mem_content, sizeof(uint8_t), data_size, fp);
+    if(written != data_size) {
         LT_LOG_ERROR("Error writing into file, %zu written", written);
         fclose(fp);
         lt_deinit(h);
