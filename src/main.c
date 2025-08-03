@@ -137,7 +137,7 @@ void print_usage(void) {
     printf("\r\nUsage:\r\n\n"
 "\t./lt-util "CHIP_ID"                              # Print chip identification\r\n"
 "\t./lt-util "RNG"    <count> <file>            # Random  - Get 1-255 random bytes and store them into file\r\n"
-"\t./lt-util "ECC" "  ECC_INSTALL" <slot>  <file>            # ECC key - Install private key from keypair.bin into a given slot (0-31)\r\n"
+"\t./lt-util "ECC" "  ECC_INSTALL" <slot>  <file>            # ECC key - Install private key from filename into a given slot (0-31)\r\n"
 "\t./lt-util "ECC" " ECC_GENERATE" <slot>                    # ECC key - Generate private key in a given slot (0-31)\r\n"
 "\t./lt-util "ECC" " ECC_DOWNLOAD" <slot>  <file>            # ECC key - Download public key from given slot (0-31) into file\r\n"
 "\t./lt-util "ECC" " ECC_CLEAR" <slot>                    # ECC key - Clear given ECC slot (0-31)\r\n"
@@ -148,7 +148,10 @@ void print_usage(void) {
 // Mac and Destroy is not exposed until it works stable
 // lt-util -mac-set <pin> <add> <secret_generated>
 // lt-util -mac-ver <pin> <add> <secret_returned>
-"\t All commands return 0 if success, otherwise 1\r\n\n");
+"\t All commands return 0 if success, otherwise 1.\r\n\n"
+"Notes:\r\n\n"
+"\t - Each command creates a new secure session.\r\n"
+"\t - Files are read and stored as binaries. Use hexdump or similar tools to inspect contents of the files.\r\n");
 }
 #endif
 
