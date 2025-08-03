@@ -163,8 +163,8 @@ static int process_rng_get(lt_handle_t *h, char *count_in, char *file) {
     // Parsing count number
     char *endptr;
     long int count = strtol(count_in, &endptr, 10);
-    if((count > RANDOM_VALUE_GET_LEN_MAX) | (count <= 0)) {
-        LT_LOG_ERROR("Invalid length passed, use number between 0-255");
+    if((count > RANDOM_VALUE_GET_LEN_MAX) | (count <= 1)) {
+        LT_LOG_ERROR("Invalid length passed, use number between 1-255");
         return 1;
     }
     // TODO check endptr
