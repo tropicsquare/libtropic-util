@@ -2,12 +2,12 @@
 Libtropic is an SDK written in C. It is application interface for communication with the TROPIC01 secure element chip. Library is maintained by Tropic Square and simplifies integration into user application. Tropic Square strongly recommend using this library as encapsulate low level communication on SPI interface to exposed API calls (check out [API documentation](https://github.com/tropicsquare/tropic01/blob/main/doc/api/tropic01_user_api_v1.1.2.pdf)).   
 For documentation of the libtropic SDK, please visit our [GitHub Pages](https://tropicsquare.github.io/libtropic/).
 
-In this document, we provide information on application example lt-util, which integrates the [libtropic SDK](https://github.com/tropicsquare/libtropic) repository as a submodule and builds a command line application which demonstrates TROPIC01 features and recommended integration. The lt-util application implements support for the SPI present on the RPi using both wiringPi drivers and a native SPI kernel driver (spidev). In this tutorial, we will focus on using native SPI driver on [Raspberry Pi 4/5](https://www.raspberrypi.com/documentation/computers/getting-started.html) and [Tropic01 Shield (TS1501)](https://github.com/tropicsquare/ts-dev-kits/blob/main/ts1501-rpi-shield.md).
+In this document, we provide information on application example lt-util, which integrates the [libtropic SDK](https://github.com/tropicsquare/libtropic) repository as a submodule and builds a command line application which demonstrates TROPIC01 features and recommended integration. The lt-util application implements support for the SPI present on the RPi using both wiringPi drivers and a native SPI kernel driver (spidev). In this tutorial, we will focus on using native SPI driver on [Raspberry Pi 4/5](https://www.raspberrypi.com/documentation/computers/getting-started.html) and [Tropic01 RPi Shield (TS1501)](https://github.com/tropicsquare/ts-dev-kits/blob/main/ts1501-rpi-shield.md).
 
 ## Quick Start
 
 ### Hardware preparation
-In this tutorial, we use recommend using [Tropic01 Shield (TS1501)](https://github.com/tropicsquare/ts-dev-kits/blob/main/ts1501-rpi-shield.md). **On the shield, short the CS2 pins with jumper.**
+In this tutorial, we use recommend using [Tropic01 RPi Shield (TS1501)](https://github.com/tropicsquare/ts-dev-kits/blob/main/ts1501-rpi-shield.md). **On the shield, short the CS2 pins with jumper.**
 
 Your setup should look like following:
 
