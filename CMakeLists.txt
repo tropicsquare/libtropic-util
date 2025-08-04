@@ -107,8 +107,13 @@ endif()
 #   Link executable                                                       #
 #                                                                         #
 ###########################################################################
-
-target_link_options(lt-util PRIVATE -Wl,--gc-sections)
+if(APPLE)
+    target_link_options(lt-util PRIVATE -Wl,-dead_strip)
+    target_compile_options(lt-util PRIVATE -Wno-parentheses-equality -Wno-pointer-sign)
+elseif(UNIX)
+    target_link_options(lt-util PRIVATE -Wl,--gc-sections)
+    target_compile_options(lt-util PRIVATE -ffunction-sections -fdata-sections)
+endif()
 
 if(USB_DONGLE_TS1301 OR USB_DONGLE_TS1302 OR UNIX_SPI)
     target_link_libraries(lt-util PRIVATE tropic)
