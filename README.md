@@ -6,7 +6,7 @@
 Contributors, please follow [guidelines](https://github.com/tropicsquare/libtropic-util/blob/main/CONTRIBUTING.md).
 
 > [!TIP]
-> To evaluate the lt-util on Raspberry Pi using SPI communication, check out [the tutorial](https://github.com/tropicsquare/tropic01/blob/main/doc/api/tropic01_user_api_v1.1.2.pdf).
+> To evaluate the lt-util on Raspberry Pi using SPI communication, check out [the tutorial](./RPI_TUTORIAL.md).
 
 ## Clone
 
