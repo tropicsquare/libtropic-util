@@ -97,6 +97,7 @@ uint8_t sh0pub[]  = {0xF9,0x75,0xEB,0x3C,0x2F,0xD7,0x90,0xC9,0x6F,0x29,0x4F,0x15
 #if (USB_DONGLE_TS1301 || USB_DONGLE_TS1302)
 void print_usage(void) {
     printf("\r\nUsage (first parameter is serialport with usb dongle, update it if needed):\r\n\n"
+"\t./lt-util /dev/ttyACM0 "CHIP_ID"            		        # Print Chip ID information\r\n"
 "\t./lt-util /dev/ttyACM0 "RNG"    <count> <file>            # Random  - Get 1-255 random bytes and store them into file\r\n"
 "\t./lt-util /dev/ttyACM0 "ECC" "  ECC_INSTALL" <slot>  <file>            # ECC key - Install private key from keypair.bin into a given slot\r\n"
 "\t./lt-util /dev/ttyACM0 "ECC" " ECC_GENERATE" <slot>                    # ECC key - Generate private key in a given slot\r\n"
@@ -1024,8 +1025,12 @@ int main(int argc, char *argv[]) {
     h.l2.device = &uart;
     uart.baud_rate = 115200;
     strncpy(uart.device, argv[1], UART_DEV_MAX_LEN);
-
-    if (argc == 5) {
+    if (argc == 3) {
+        if (strcmp(argv[2], CHIP_ID) == 0) {
+            return process_chip_id(&h);
+        }
+    }
+    else if (argc == 5) {
         // RNG
         if(strcmp(argv[2], RNG) == 0) {
             return process_rng_get(&h, argv[3], argv[4]);
