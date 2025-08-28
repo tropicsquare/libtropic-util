@@ -3,6 +3,14 @@
 
 Instruction described here are relevant when `libtropic-util` is used with `[TS1302 USB devkit](https://github.com/tropicsquare/tropic01-stm32u5-usb-devkit-hw)
 
+## Prerequisites
+Make sure that your user is a member of `dialout` group. On usual linux distributions you can do it like this:
+
+```
+sudo adduser YOUR_USER dialout
+```
+ > [!TIP]
+ > Don't forget log out and log in afterwards.
 
 
 # Build
@@ -42,15 +50,4 @@ For example getting 100 random bytes into file `filename`:
 ./lt-util /dev/ttyACM0  -r 100 filename
 ```
 
-For more examples have a look into `test/` folder. You can execute tests there to be sure that all works.
-
-# Access rights
-
-In case of problems with accessing serialport, make sure that your user is a member of `dialout` group. On usual linux distributions you can do it like this:
-
-```
-sudo adduser YOUR_USER dialout
-```
-
-Don't forget log out and log in afterwards.
-
+For more examples have a look into `test/` folder. You can execute tests with `_usb_` in their name there to be sure that all works.

@@ -13,14 +13,18 @@ pip install cryptography
 
 ### Run tests
 
-Connect dongle (or spi shield), compile lt-util and then execute appropriate tests:
+Connect dongle (or spi shield), compile lt-util, go to one of folders and then execute appropriate tests:
 
+Runing tests when USB Devkit is connected:
 ```bash
-cd tests/
-# When USB dongle with TROPIC01 is used
+cd tests/USB_devkit/
 ./run_tests_usb.sh
-# or in case of Raspberrypi shield with TROPIC01
-# ./run_tests_hw_spi.sh
+```
+
+Runing tests when HW SPI is used:
+```bash
+cd tests/HW_SPI/
+./run_tests_hw_spi.sh
 ```
 
 You should see output similar to this:

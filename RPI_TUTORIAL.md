@@ -57,7 +57,7 @@ various information about the chip, like firmware version, silicon revision and 
 
 ### Running demo script
 We have prepared a script, which will run various commands and output results as a demonstration
-of lt-util. Check out [`run_tests_hw_spi.sh`](test/run_tests_hw_spi.sh).
+of lt-util. Check out [`run_tests_hw_spi.sh`](test/HW_SPI/run_tests_hw_spi.sh).
 
 ## Troubleshooting
 1. The SPI is not working.
