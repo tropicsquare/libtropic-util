@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PATH_TO_BUILD="../build"
+PATH_TO_BUILD="../../build"
 UART_PORT=
 cd ${PATH_TO_BUILD}
 

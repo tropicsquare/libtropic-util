@@ -8,7 +8,7 @@
 # 3. Again does a failed try to retrieve secret - because PIN entered is wrong
 # 4. Does a successful try to retrieve secret - because PIN entered is correct
 
-PATH_TO_BUILD="../build"
+PATH_TO_BUILD="../../build"
 UART_PORT="/dev/ttyACM0"
 cd ${PATH_TO_BUILD}
 LINE="---------------------------------------------------------------------------"
