@@ -36,9 +36,15 @@ If you have our official shield, put jumper on CS2 position, otherwise wire TROP
 Enable hardware SPI kernel module. On Raspberry Pi you can use `raspi-config`:
 
 ```sh
-sudo raspi-config  # then go into Interfaces and enable SPI 
+sudo raspi-config  # then go into Interfaces and enable SPI
 ```
 
+# Clone
+
+Use following command to clone repository:
+```bash
+git clone --recurse-submodules https://github.com/tropicsquare/libtropic-util
+```
 
 # Build
 Go to the root of repository and then use one-liner for compiling:

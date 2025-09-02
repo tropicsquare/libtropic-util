@@ -8,14 +8,8 @@ Contributors, please follow [guidelines](https://github.com/tropicsquare/libtrop
 > [!TIP]
 > To evaluate the lt-util on Raspberry Pi using SPI communication, check out [the tutorial](./RPI_TUTORIAL.md).
 
-# Clone
 
-Use following command to clone repository:
-```
-git clone --recurse-submodules https://github.com/tropicsquare/libtropic-util
-```
-
-and follow building instruction based on what hardware you have.
+Choose instruction based on what hardware you have.
 
 
 ### Supported Hardware

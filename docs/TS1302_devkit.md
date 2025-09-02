@@ -13,6 +13,13 @@ sudo adduser YOUR_USER dialout
  > Don't forget log out and log in afterwards.
 
 
+# Clone
+
+Use following command to clone repository:
+```bash
+git clone --recurse-submodules https://github.com/tropicsquare/libtropic-util
+```
+
 # Build
 Go to the root of repository and then use one-liner for compiling:
 ```bash
