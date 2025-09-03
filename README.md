@@ -6,7 +6,7 @@
 Contributors, please follow the [contribution guidelines](https://github.com/tropicsquare/libtropic-util/blob/main/CONTRIBUTING.md).
 
 > [!TIP]
-> To evaluate `lt-util` on a Raspberry Pi using SPI communication, refer to [this tutorial](./RPI_TUTORIAL.md).
+> For a step-by-step guide on evaluating `TROPIC01` on a Raspberry Pi using SPI communication, refer to [libtropic-linux](https://github.com/tropicsquare/libtropic-linux) repository.
 
 ### Supported Hardware
 
