@@ -39,24 +39,22 @@ project(libtropic_unix_spi_example
 #                                                                         #
 ###########################################################################
 
-if(HW_SPI)
-    add_executable(lt-util src/main.c src/macandd.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_raspberrypi_wiringpi.c)
-endif()
-
-if(USB_DONGLE_TS1301)
+if(USB_DONGLE_TS1301 OR USB_DONGLE_TS1302)
     add_executable(lt-util src/main.c  src/macandd.c
         ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_unix_usb_dongle.c)
-endif()
-
-if(USB_DONGLE_TS1302)
-    add_executable(lt-util src/main.c  src/macandd.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_unix_usb_dongle.c)
+        include_directories(
+            ${PATH_LIBTROPIC}/include
+            ${PATH_LIBTROPIC}/hal/port/unix
+        )
 endif()
 
 if(UNIX_SPI)
     add_executable(lt-util src/main.c  src/macandd.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_unix.c)
+        ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_unix_spi.c)
+        include_directories(
+            ${PATH_LIBTROPIC}/include
+            ${PATH_LIBTROPIC}/hal/port/unix
+        )
 endif()
 
 ###########################################################################
@@ -74,6 +72,7 @@ set(LT_USE_TREZOR_CRYPTO ON)
 # Add path to libtropic's repository root folder
 add_subdirectory(${PATH_LIBTROPIC} "libtropic")
 
+# We need this folder because we need to include lt_hmac_sha256.h file, used in macandd.c
 include_directories(${PATH_LIBTROPIC}/src)
 
 # Customize libtropic's compilation
@@ -87,11 +86,6 @@ endif()
 if(USB_DONGLE_TS1302)
     target_compile_definitions(lt-util PRIVATE USB_DONGLE_TS1302)
 endif()
-
-if(HW_SPI)
-    target_compile_definitions(lt-util PRIVATE HW_SPI)
-endif()
-
 if(UNIX_SPI)
     target_compile_definitions(lt-util PRIVATE UNIX_SPI)
 endif()
@@ -117,8 +111,4 @@ endif()
 
 if(USB_DONGLE_TS1301 OR USB_DONGLE_TS1302 OR UNIX_SPI)
     target_link_libraries(lt-util PRIVATE tropic)
-endif()
-
-if(HW_SPI)
-    target_link_libraries(lt-util PRIVATE tropic wiringPi)
 endif()
