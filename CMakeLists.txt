@@ -11,13 +11,13 @@ cmake_minimum_required(VERSION 3.21.0)
 
 set(PATH_LIBTROPIC "libtropic/")
 
-option(UNIX_SPI           "Compile for generic SPI and GPIO Linux UAPI" OFF)
+option(LINUX_SPI           "Compile for generic SPI and GPIO Linux UAPI" OFF)
 option(HW_SPI             "Compile for hw spi on rpi" OFF)
 option(USB_DONGLE_TS1301  "Compile for TS1301 USB dongle" OFF)
 option(USB_DONGLE_TS1302  "Compile for TS1302 USB dongle" OFF)
 
 # If none of the options are set, enable USB_DONGLE_TS1302 by default
-if(NOT HW_SPI AND NOT USB_DONGLE_TS1301 AND NOT USB_DONGLE_TS1302 AND NOT UNIX_SPI)
+if(NOT HW_SPI AND NOT USB_DONGLE_TS1301 AND NOT USB_DONGLE_TS1302 AND NOT LINUX_SPI)
     set(USB_DONGLE_TS1302 ON CACHE BOOL "Compile for TS1302 USB dongle" FORCE)
 endif()
 
@@ -27,7 +27,7 @@ endif()
 #                                                                         #
 ###########################################################################
 
-project(libtropic_unix_spi_example
+project(libtropic_linux_spi_example
         VERSION 0.1.0
         DESCRIPTION "Example of libtropic's usage in Unix environment"
         LANGUAGES C)
@@ -48,7 +48,7 @@ if(USB_DONGLE_TS1301 OR USB_DONGLE_TS1302)
         )
 endif()
 
-if(UNIX_SPI)
+if(LINUX_SPI)
     add_executable(lt-util src/main.c  src/macandd.c
         ${CMAKE_CURRENT_SOURCE_DIR}/${PATH_LIBTROPIC}hal/port/unix/lt_port_unix_spi.c)
         include_directories(
@@ -86,8 +86,8 @@ endif()
 if(USB_DONGLE_TS1302)
     target_compile_definitions(lt-util PRIVATE USB_DONGLE_TS1302)
 endif()
-if(UNIX_SPI)
-    target_compile_definitions(lt-util PRIVATE UNIX_SPI)
+if(LINUX_SPI)
+    target_compile_definitions(lt-util PRIVATE LINUX_SPI)
 endif()
 
 # To see debug messages in the console, pass -DCMAKE_BUILD_TYPE=Debug when invoking cmake
@@ -109,6 +109,6 @@ elseif(UNIX)
     target_compile_options(lt-util PRIVATE -ffunction-sections -fdata-sections)
 endif()
 
-if(USB_DONGLE_TS1301 OR USB_DONGLE_TS1302 OR UNIX_SPI)
+if(USB_DONGLE_TS1301 OR USB_DONGLE_TS1302 OR LINUX_SPI)
     target_link_libraries(lt-util PRIVATE tropic)
 endif()

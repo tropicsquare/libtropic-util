@@ -19,7 +19,7 @@
 #if USB_DONGLE_TS1301 || USB_DONGLE_TS1302
 #include "lt_port_unix_usb_dongle.h"
 #endif
-#if UNIX_SPI
+#if LINUX_SPI
 #include "lt_port_unix_spi.h"
 #endif
 #include "libtropic_common.h"
@@ -54,7 +54,7 @@ int8_t pkey_index_0 =  PAIRING_KEY_SLOT_INDEX_0;
 #pragma message("Compiling for USB_DONGLE_TS1302")
 #define ENGINEERING_SAMPLES_02
 #endif
-#if UNIX_SPI
+#if LINUX_SPI
 // In rare situation (very old devkit) you might need to define ENGINEERING_SAMPLES_01 here
 #define ENGINEERING_SAMPLES_02
 #endif
@@ -119,7 +119,7 @@ void print_usage(void) {
 }
 #endif
 
-#ifdef UNIX_SPI
+#ifdef LINUX_SPI
 void print_usage(void) {
     printf("\r\nUsage:\r\n\n"
 "\t./lt-util "CHIP_ID"                              # Print chip identification\r\n"
@@ -1068,7 +1068,7 @@ int main(int argc, char *argv[]) {
 }
 #endif
 // When compiled for usb dongle, besides inputs used by TROPIC01, API also receives SPI strings
-#ifdef UNIX_SPI
+#ifdef LINUX_SPI
 int main(int argc, char *argv[]) {
     //LT_LOG ("argc %d   %s  %s  %s  %s \r\n", argc, argv[0], argv[1], argv[2], argv[3]);
     if ((argc == 1)) {

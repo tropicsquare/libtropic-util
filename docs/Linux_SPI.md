@@ -88,5 +88,5 @@ If you have an older chip (engineering sample), you need to use appropriate keys
 sample keys, compile lt-util like this:
 
 ```sh
-mkdir build &&  cd build && cmake -DUNIX_SPI=1 -DLT_BUILD_EXAMPLES=1 -DLT_SH0_PRIV_PATH=../libtropic/provisioning_data/sh0_priv_engineering_sample01.pem .. && make
+mkdir build &&  cd build && cmake -DLINUX_SPI=1 -DLT_BUILD_EXAMPLES=1 -DLT_SH0_PRIV_PATH=../libtropic/provisioning_data/sh0_priv_engineering_sample01.pem .. && make
 ```
