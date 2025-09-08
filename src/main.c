@@ -949,8 +949,6 @@ static int process_macandd_verify(lt_handle_t *h, char *pin, char *add, char *fi
         LT_LOG_INFO("PIN checked successfully");
     }
 
-    printf("Secret after\r\n");
-    print_hex(secret, sizeof(secret));
     // store secret into file
     FILE *fp = fopen(filename, "wb");
     if (fp == NULL) {
