@@ -4,7 +4,7 @@
  *
  * @details This tool is meant to be used to evaluate TROPIC01 on various platform. It is not meant to be used in production.
  * Currently it supports USB dongle TS1301 and TS1302, and HW SPI interface.
- * Choose the right one by defining -DUSB_DONGLE_TS1301=1, -DUSB_DONGLE_TS1302=1 or -DHW_SPI=1 when compiling the project.
+ * Choose the right one by defining -DUSB_DONGLE_TS1301=1, -DUSB_DONGLE_TS1302=1 or -DLINUX_SPI=1 when compiling the project.
  *
  * @license For the license see file LICENSE.txt file in the root directory of this source tree.
  */
@@ -847,7 +847,7 @@ static int process_macandd_set(lt_handle_t *h, char *pin, char *add, char *filen
         LT_LOG_ERROR("Error setting PIN and address: %s", lt_ret_verbose(ret));
         return 1;
     } else {
-        LT_LOG_INFO("PIN and address set successfully");
+        LT_LOG_INFO("PIN and add bytes set successfully");
     }
     print_hex(secret, sizeof(secret));
     printf("\r\n");
@@ -935,7 +935,7 @@ static int process_macandd_verify(lt_handle_t *h, char *pin, char *add, char *fi
         LT_LOG_INFO("Secure channel established: %s", lt_ret_verbose(ret));
     }
 
-    uint8_t secret[32];
+    uint8_t secret[32] = {0};
     print_hex(pin_bytes, 4);
     print_hex(add_bytes, add_bytes_len);
     print_hex(secret, sizeof(secret));
@@ -949,6 +949,8 @@ static int process_macandd_verify(lt_handle_t *h, char *pin, char *add, char *fi
         LT_LOG_INFO("PIN checked successfully");
     }
 
+    printf("Secret after\r\n");
+    print_hex(secret, sizeof(secret));
     // store secret into file
     FILE *fp = fopen(filename, "wb");
     if (fp == NULL) {

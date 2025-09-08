@@ -23,14 +23,14 @@ cd tests/USB_devkit/
 
 Runing tests when HW SPI is used:
 ```bash
-cd tests/HW_SPI/
-./run_tests_hw_spi.sh
+cd tests/LINUX_SPI/
+./run_tests_linux_spi.sh
 ```
 
 You should see output similar to this:
 
 ```
-$ ./run_tests_hw_spi.sh 
+$ ./run_tests_linux_spi.sh 
 
 [COMMAND] RNG test expected fails with invalid length:
   Status:  1

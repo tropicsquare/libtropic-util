@@ -16,7 +16,9 @@ LINE="--------------------------------------------------------------------------
 # Get 32 random bytes and save as message:"
 ./lt-util ${UART_PORT} -mac-set 1234 abcdabcd secret_generated; echo "[<<] lt-util returned status: " $?
 echo ${LINE}
-xxd -p ${PATH_TO_BUILD}/secret_generated | tr -d '\n' && echo ""
+
+echo $(pwd)
+xxd -p secret_generated | tr -d '\n' && echo ""
 rm secret_generated
 
 # Guess n.1 with a wrong PIN
@@ -25,13 +27,13 @@ xxd -p ${PATH_TO_BUILD}/secret_returned | tr -d '\n' && echo ""
 echo ${LINE}
 
 # Guess n.2 with a wrong PIN
-./lt-util ${UART_PORT} -mac-ver 1233 abcdabcd secret_returned; echo "[<<] lt-util returned status: " $?
+./lt-util ${UART_PORT} -mac-ver 1234 abcdabcd secret_returned; echo "[<<] lt-util returned status: " $?
 xxd -p ${PATH_TO_BUILD}/secret_returned | tr -d '\n' && echo ""
 echo ${LINE}
 
 # Finally guess n.3 with a correct PIN
-./lt-util ${UART_PORT} -mac-ver 1234 abcdabcd secret_returned; echo "[<<] lt-util returned status: " $?
-xxd -p ${PATH_TO_BUILD}/secret_returned | tr -d '\n' && echo ""
-echo ${LINE}
+#./lt-util ${UART_PORT} -mac-ver 1234 abcdabcd secret_returned; echo "[<<] lt-util returned status: " $?
+#xxd -p ${PATH_TO_BUILD}/secret_returned | tr -d '\n' && echo ""
+#echo ${LINE}
 
 cd -

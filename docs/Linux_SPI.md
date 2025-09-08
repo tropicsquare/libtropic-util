@@ -49,7 +49,7 @@ git clone --recurse-submodules https://github.com/tropicsquare/libtropic-util
 # Build
 Go to the root of repository and then use one-liner for compiling:
 ```bash
-mkdir build &&  cd build && cmake -DHW_SPI=1 .. && make && cd ../
+mkdir build &&  cd build && cmake -DLINUX_SPI=1 .. && make && cd ../
 ```
 
 Binary will be produced in `build/`. When you execute it without arguments:

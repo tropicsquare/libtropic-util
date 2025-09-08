@@ -12,12 +12,11 @@ cmake_minimum_required(VERSION 3.21.0)
 set(PATH_LIBTROPIC "libtropic/")
 
 option(LINUX_SPI           "Compile for generic SPI and GPIO Linux UAPI" OFF)
-option(HW_SPI             "Compile for hw spi on rpi" OFF)
 option(USB_DONGLE_TS1301  "Compile for TS1301 USB dongle" OFF)
 option(USB_DONGLE_TS1302  "Compile for TS1302 USB dongle" OFF)
 
 # If none of the options are set, enable USB_DONGLE_TS1302 by default
-if(NOT HW_SPI AND NOT USB_DONGLE_TS1301 AND NOT USB_DONGLE_TS1302 AND NOT LINUX_SPI)
+if(NOT USB_DONGLE_TS1301 AND NOT USB_DONGLE_TS1302 AND NOT LINUX_SPI)
     set(USB_DONGLE_TS1302 ON CACHE BOOL "Compile for TS1302 USB dongle" FORCE)
 endif()
 
@@ -62,9 +61,6 @@ endif()
 #   Add libtropic and set it up                                           #
 #                                                                         #
 ###########################################################################
-
-set(LT_UTILS ON)
-#set(LT_BUILD_EXAMPLES ON)
 
 # Use trezor crypto as a source of backend cryptography code
 set(LT_USE_TREZOR_CRYPTO ON)
