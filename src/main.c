@@ -4,7 +4,7 @@
  *
  * @details This tool is meant to be used to evaluate TROPIC01 on various platform. It is not meant to be used in production.
  * Currently it supports USB dongle TS1301 and TS1302, and HW SPI interface.
- * Choose the right one by defining -DUSB_DONGLE_TS1301=1, -DUSB_DONGLE_TS1302=1 or -DHW_SPI=1 when compiling the project.
+ * Choose the right one by defining -DUSB_DONGLE_TS1301=1, -DUSB_DONGLE_TS1302=1 or -DLINUX_SPI=1 when compiling the project.
  *
  * @license For the license see file LICENSE.txt file in the root directory of this source tree.
  */
@@ -14,12 +14,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "macandd.h"
+
 #include "libtropic.h"
-#include "libtropic_port.h"
-#include "libtropic_logging.h"
-#include "libtropic_examples.h"
+#if USB_DONGLE_TS1301 || USB_DONGLE_TS1302
+#include "lt_port_unix_usb_dongle.h"
+#endif
+#if LINUX_SPI
+#include "lt_port_unix_spi.h"
+#endif
 #include "libtropic_common.h"
+#include "libtropic_logging.h"
+#include "macandd.h"
 
 #define LT_LOG_CMD(f_, ...) LT_LOG("[CMD] " f_, ##__VA_ARGS__)
 
@@ -49,7 +54,7 @@ int8_t pkey_index_0 =  PAIRING_KEY_SLOT_INDEX_0;
 #pragma message("Compiling for USB_DONGLE_TS1302")
 #define ENGINEERING_SAMPLES_02
 #endif
-#if HW_SPI
+#if LINUX_SPI
 // In rare situation (very old devkit) you might need to define ENGINEERING_SAMPLES_01 here
 #define ENGINEERING_SAMPLES_02
 #endif
@@ -113,27 +118,8 @@ void print_usage(void) {
 "\t All commands return 0 if success, otherwise 1\r\n\n");
 }
 #endif
-#ifdef HW_SPI
 
-void print_usage(void) {
-    printf("\r\nUsage:\r\n\n"
-"\t./lt-util "RNG"    <count> <file>            # Random  - Get 1-255 random bytes and store them into file\r\n"
-"\t./lt-util "ECC" "  ECC_INSTALL" <slot>  <file>            # ECC key - Install private key from keypair.bin into a given slot\r\n"
-"\t./lt-util "ECC" " ECC_GENERATE" <slot>                    # ECC key - Generate private key in a given slot\r\n"
-"\t./lt-util "ECC" " ECC_DOWNLOAD" <slot>  <file>            # ECC key - Download public key from given slot into file\r\n"
-"\t./lt-util "ECC" " ECC_CLEAR" <slot>                    # ECC key - Clear given ECC slot\r\n"
-"\t./lt-util "ECC" " ECC_SIGN" <slot>  <file1> <file2>   # ECC key - Sign content of file1 (max size is 4095B) with key from a given slot and store resulting signature into file2\r\n"
-"\t./lt-util "MEM" " MEM_STORE" <slot>  <file>            # Memory  - Store content of filename (max size is 444B)  into memory slot\r\n"
-"\t./lt-util "MEM" " MEM_READ" <slot>  <file>            # Memory  - Read content of memory slot (max size is 444B) into filename\r\n"
-"\t./lt-util "MEM" " MEM_ERASE" <slot>                    # Memory  - Erase content of memory slot\r\n\n"
-// Mac and Destroy is not exposed until it works stable
-// lt-util -mac-set <pin> <add> <secret_generated>
-// lt-util -mac-ver <pin> <add> <secret_returned>
-"\t All commands return 0 if success, otherwise 1\r\n\n");
-}
-#endif
-
-#ifdef UNIX_SPI
+#ifdef LINUX_SPI
 void print_usage(void) {
     printf("\r\nUsage:\r\n\n"
 "\t./lt-util "CHIP_ID"                              # Print chip identification\r\n"
@@ -192,7 +178,7 @@ static int process_rng_get(lt_handle_t *h, char *count_in, char *file) {
         LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
 
-    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
+    ret = lt_verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
@@ -270,7 +256,7 @@ static int process_ecc_install(lt_handle_t *h, char *slot_in, char *file) {
     } else {
         LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
-    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
+    ret = lt_verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
@@ -321,7 +307,7 @@ static int process_ecc_generate(lt_handle_t *h, char *slot_in) {
     } else {
         LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
-    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
+    ret = lt_verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
@@ -384,7 +370,7 @@ static int process_ecc_download(lt_handle_t *h, char *slot_in, char *file) {
     } else {
         LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
-    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
+    ret = lt_verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
@@ -441,7 +427,7 @@ static int process_ecc_clear(lt_handle_t *h, char *slot_in) {
     } else {
         LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
-    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
+    ret = lt_verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
@@ -521,7 +507,7 @@ static int process_ecc_sign(lt_handle_t *h, char *slot_in, char *msg_file_in, ch
     } else {
         LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
-    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
+    ret = lt_verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
@@ -617,7 +603,7 @@ static int process_mem_store(lt_handle_t *h, char *slot_in, char *file) {
     } else {
         LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
-    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
+    ret = lt_verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
@@ -681,7 +667,7 @@ static int process_mem_read(lt_handle_t *h, char *slot_in, char *file) {
     } else {
         LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
-    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
+    ret = lt_verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
@@ -748,7 +734,7 @@ static int process_mem_erase(lt_handle_t *h, char *slot_in)
     } else {
         LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
-    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
+    ret = lt_verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
@@ -841,7 +827,7 @@ static int process_macandd_set(lt_handle_t *h, char *pin, char *add, char *filen
     } else {
         LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
-    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
+    ret = lt_verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
@@ -861,7 +847,7 @@ static int process_macandd_set(lt_handle_t *h, char *pin, char *add, char *filen
         LT_LOG_ERROR("Error setting PIN and address: %s", lt_ret_verbose(ret));
         return 1;
     } else {
-        LT_LOG_INFO("PIN and address set successfully");
+        LT_LOG_INFO("PIN and add bytes set successfully");
     }
     print_hex(secret, sizeof(secret));
     printf("\r\n");
@@ -940,7 +926,7 @@ static int process_macandd_verify(lt_handle_t *h, char *pin, char *add, char *fi
     } else {
         LT_LOG_INFO("lt_init(): %s", lt_ret_verbose(ret));
     }
-    ret = verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
+    ret = lt_verify_chip_and_start_secure_session(h, sh0priv, sh0pub, pkey_index_0);
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error sec channel: %s", lt_ret_verbose(ret));
         lt_deinit(h);
@@ -949,7 +935,7 @@ static int process_macandd_verify(lt_handle_t *h, char *pin, char *add, char *fi
         LT_LOG_INFO("Secure channel established: %s", lt_ret_verbose(ret));
     }
 
-    uint8_t secret[32];
+    uint8_t secret[32] = {0};
     print_hex(pin_bytes, 4);
     print_hex(add_bytes, add_bytes_len);
     print_hex(secret, sizeof(secret));
@@ -984,11 +970,11 @@ static int process_macandd_verify(lt_handle_t *h, char *pin, char *add, char *fi
 }
 
 static int process_chip_id(lt_handle_t *h) {
-    
+
     struct lt_chip_id_t chip_id;
 
     lt_ret_t ret = lt_init(h);
-    
+
     if(ret != LT_OK) {
         LT_LOG_ERROR("Error lt_init(): %s", lt_ret_verbose(ret));
         return 1;
@@ -999,7 +985,7 @@ static int process_chip_id(lt_handle_t *h) {
         LT_LOG_ERROR("Error lt_get_info_chip_id: %s", lt_ret_verbose(ret));
         return 1;
     }
-    
+
     ret = lt_print_chip_id(&chip_id, printf);
     if (ret != LT_OK) {
         LT_LOG_ERROR("Error lt_print_chip_id: %s", lt_ret_verbose(ret));
@@ -1021,10 +1007,10 @@ int main(int argc, char *argv[]) {
     }
 
     lt_handle_t h;
-    lt_uart_def_unix_t uart = {0};
+    lt_dev_unix_usb_dongle_t uart = {0};
     h.l2.device = &uart;
     uart.baud_rate = 115200;
-    strncpy(uart.device, argv[1], UART_DEV_MAX_LEN);
+    strncpy(uart.dev_path, argv[1], DEVICE_PATH_MAX_LEN);
     if (argc == 3) {
         if (strcmp(argv[2], CHIP_ID) == 0) {
             return process_chip_id(&h);
@@ -1082,69 +1068,7 @@ int main(int argc, char *argv[]) {
 }
 #endif
 // When compiled for usb dongle, besides inputs used by TROPIC01, API also receives SPI strings
-#ifdef HW_SPI
-int main(int argc, char *argv[]) {
-    //LT_LOG ("argc %d   %s  %s  %s  %s \r\n", argc, argv[0], argv[1], argv[2], argv[3]);
-    if ((argc == 1)) {
-        print_usage();
-        return 0;
-    }
-
-    lt_handle_t h;
-    lt_uart_def_unix_t uart = {0};
-    h.l2.device = &uart;
-    uart.baud_rate = 115200;
-    strncpy(uart.device, argv[1], UART_DEV_MAX_LEN);
-
-    if (argc == 4) {
-        // RNG
-        if(strcmp(argv[1], RNG) == 0) {
-            return process_rng_get(&h, argv[2], argv[3]);
-        }
-        // ECC 5 arguments
-        else if(strcmp(argv[1], ECC) == 0) {
-            if (strcmp(argv[2], ECC_GENERATE) == 0) {
-                process_ecc_generate(&h, argv[3]);
-                return 0;
-            } else if (strcmp(argv[2], ECC_CLEAR) == 0) {
-                return process_ecc_clear(&h, argv[3]);
-            }
-        }
-        // MEM 4 arguments
-        else if(strcmp(argv[1], MEM) == 0) {
-            if (strcmp(argv[2], MEM_ERASE) == 0) {
-                return process_mem_erase(&h, argv[4]);
-            }
-        }
-    } else if (argc == 5) {
-        if(strcmp(argv[1], ECC) == 0) {
-            if (strcmp(argv[2], ECC_INSTALL) == 0) {
-                return process_ecc_install(&h, argv[3], argv[4]);
-            } else if (strcmp(argv[2], ECC_DOWNLOAD) == 0) {
-                return process_ecc_download(&h, argv[3], argv[4]);
-            }
-        } else if(strcmp(argv[1], MEM) == 0) {
-            if (strcmp(argv[2], MEM_STORE) == 0) {
-                return process_mem_store(&h, argv[3], argv[4]);
-            } else if (strcmp(argv[2], MEM_READ) == 0) {
-                return process_mem_read(&h, argv[3], argv[4]);
-            }
-        }
-    } else if (argc == 6) {
-        if(strcmp(argv[1], ECC) == 0) {
-            if (strcmp(argv[2], ECC_SIGN) == 0) {
-                return process_ecc_sign(&h, argv[3], argv[4], argv[5]);
-            }
-        }
-    }
-
-    LT_LOG_ERROR("ERROR wrong parameters entered\r\n");
-    return 1;
-}
-
-#endif
-
-#ifdef UNIX_SPI
+#ifdef LINUX_SPI
 int main(int argc, char *argv[]) {
     //LT_LOG ("argc %d   %s  %s  %s  %s \r\n", argc, argv[0], argv[1], argv[2], argv[3]);
     if ((argc == 1)) {
